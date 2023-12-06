@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "guards": ["./src/guards"],
+      "guards/*": ["./src/guards/*"],
+      "modules": ["./src/modules"],
+      "modules/*": ["./src/modules/*"],
+      "utils": ["./src/utils"],
+      "utils/*": ["./src/utils/*"],
+      "middleware": ["./src/middleware"],
+      "middleware/*": ["./src/middleware/*"],
+      "interceptors": ["./src/interceptors"],
+      "interceptors/*": ["./src/interceptors/*"],
+      "configurations": ["./src/configurations"],
+      "configurations/*": ["./src/configurations/*"],
+    }
+  }
+}
