@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { Course, UserCourseRole } from '@prisma/client';
 import { PrismaService } from 'utils/prisma';
 import { UpsertCourseDto, GetCourseFilterDto } from '../resources/dto';
-import { BadRequestException } from 'utils/errors/domain.error';
 
 export const ICourseService = 'ICourseService';
 export interface ICourseService {
@@ -16,15 +15,7 @@ export interface ICourseService {
   getCourse(courseId: string, userId: string): Promise<Course>;
 
   createCourse(course: UpsertCourseDto, userId: string): Promise<Course>;
-
-  updateCourse(
-    courseId: string,
-    course: UpsertCourseDto,
-    userId: string,
-  ): Promise<Course>;
   updateCourse(courseId: string, course: UpsertCourseDto): Promise<Course>;
-
-  deleteCourse(courseId: string, userId: string): Promise<Course>;
   deleteCourse(courseId: string): Promise<Course>;
 }
 
@@ -92,10 +83,6 @@ export class CourseService implements ICourseService {
       });
     }
 
-    if (!result) {
-      throw new BadRequestException(`Not found course id ${courseId}`);
-    }
-
     return result;
   }
 
@@ -115,78 +102,29 @@ export class CourseService implements ICourseService {
     return result;
   }
 
-  updateCourse(courseId: string, course: UpsertCourseDto): Promise<Course>;
-  updateCourse(
-    courseId: string,
-    course: UpsertCourseDto,
-    userId?: string,
-  ): Promise<Course>;
   async updateCourse(
     courseId: string,
     course: UpsertCourseDto,
-    userId?: string,
   ): Promise<Course> {
-    let result: Course = null;
-    if (userId) {
-      result = await this._prismaService.course.update({
-        where: {
-          id: courseId,
-          attendees: {
-            some: {
-              OR: [
-                {
-                  userId: userId,
-                  role: UserCourseRole.HOST,
-                },
-                {
-                  userId: userId,
-                  role: UserCourseRole.TEACHER,
-                },
-              ],
-            },
-          },
-        },
-        data: {
-          ...course,
-        },
-      });
-    } else {
-      result = await this._prismaService.course.update({
-        where: {
-          id: courseId,
-        },
-        data: {
-          ...course,
-        },
-      });
-    }
+    const result = await this._prismaService.course.update({
+      where: {
+        id: courseId,
+      },
+      data: {
+        ...course,
+      },
+    });
 
     return result;
   }
 
-  deleteCourse(courseId: string): Promise<Course>;
-  deleteCourse(courseId: string, userId: string): Promise<Course>;
-  async deleteCourse(courseId: string, userId?: string): Promise<Course> {
-    let result: Course = null;
-    if (userId) {
-      result = await this._prismaService.course.delete({
-        where: {
-          id: courseId,
-        },
-      });
-    } else {
-      result = await this._prismaService.course.delete({
-        where: {
-          id: courseId,
-          attendees: {
-            some: {
-              userId: userId,
-              role: UserCourseRole.HOST,
-            },
-          },
-        },
-      });
-      return result;
-    }
+  async deleteCourse(courseId: string): Promise<Course> {
+    const result = await this._prismaService.course.delete({
+      where: {
+        id: courseId,
+      },
+    });
+
+    return result;
   }
 }

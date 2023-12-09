@@ -1,13 +1,30 @@
 import { Module } from '@nestjs/common';
-import { CourseController } from './controllers';
-import { CourseService, ICourseService } from './services';
+import {
+  CourseAdminController,
+  CourseController,
+  CourseInvitationController,
+} from './controllers';
+import {
+  CourseService,
+  ICourseService,
+  IInvitationService,
+  InvitationService,
+} from './services';
 
 @Module({
-  controllers: [CourseController],
+  controllers: [
+    CourseController,
+    CourseAdminController,
+    CourseInvitationController,
+  ],
   providers: [
     {
       provide: ICourseService,
       useClass: CourseService,
+    },
+    {
+      provide: IInvitationService,
+      useClass: InvitationService,
     },
   ],
 })

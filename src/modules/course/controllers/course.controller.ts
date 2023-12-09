@@ -20,8 +20,8 @@ import {
 import { ICourseService } from '../services';
 import { GetCourseFilterDto, UpsertCourseDto } from '../resources/dto';
 import { User } from 'utils/decorator/parameters';
-import { AuthenticatedGuard } from 'guards';
-import { UserResponse } from '../resources/responses';
+import { AuthenticatedGuard, UseCoursePolicies, UserResponse } from 'guards';
+import { UserCourseRole } from '@prisma/client';
 
 // admin //
 // courses
@@ -60,19 +60,20 @@ export class CourseController {
     return this._courseService.createCourse(upsertCourseDto, user.userId);
   }
 
+  @UseCoursePolicies({ roles: [UserCourseRole.HOST, UserCourseRole.TEACHER] })
   @HttpCode(HttpStatus.OK)
   @Put(':id')
   updateCourse(
     @Param('id') id: string,
     @Body() upsertCourseDto: UpsertCourseDto,
-    @User() user: UserResponse,
   ) {
-    return this._courseService.updateCourse(id, upsertCourseDto, user.userId);
+    return this._courseService.updateCourse(id, upsertCourseDto);
   }
 
+  @UseCoursePolicies({ roles: [UserCourseRole.HOST, UserCourseRole.TEACHER] })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
-  deleteCourse(@Param('id') id: string, @User() user: UserResponse) {
-    return this._courseService.deleteCourse(id, user.userId);
+  deleteCourse(@Param('id') id: string) {
+    return this._courseService.deleteCourse(id);
   }
 }

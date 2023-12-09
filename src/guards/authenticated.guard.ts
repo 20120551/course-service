@@ -8,7 +8,7 @@ import { Auth0UserInfo, IAuth0Service } from 'utils/auth0';
 import { UnauthorizedException } from 'utils/errors/domain.error';
 import { createCamelCaseFromObject } from 'utils/request';
 import { Request } from 'express';
-import { UserResponse } from 'modules/course/resources/responses';
+import { UserResponse } from 'guards';
 
 @Injectable()
 export class AuthenticatedGuard implements CanActivate {

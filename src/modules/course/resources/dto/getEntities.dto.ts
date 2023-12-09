@@ -1,7 +1,7 @@
 import { IsOptional } from 'class-validator';
 import { parseInt } from 'utils/decorator/parameters';
 
-export class GetCourseFilterDto {
+class FilterDto {
   @IsOptional()
   @parseInt()
   take?: number;
@@ -10,3 +10,6 @@ export class GetCourseFilterDto {
   @parseInt()
   skip?: number;
 }
+
+export class GetCourseFilterDto extends FilterDto {}
+export class GetInvitationFilterDto extends FilterDto {}
