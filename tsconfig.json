@@ -5,17 +5,20 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "allowJs": true,
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
     "incremental": true,
     "skipLibCheck": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "esModuleInterop": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "allowJs": true,
     "paths": {
       "guards": ["./src/guards"],
       "guards/*": ["./src/guards/*"],
@@ -29,6 +32,11 @@
       "interceptors/*": ["./src/interceptors/*"],
       "configurations": ["./src/configurations"],
       "configurations/*": ["./src/configurations/*"],
-    }
-  }
+    },
+    "typeRoots": [
+      "node_modules/@types",
+      "src/types"
+    ]
+  },
+  "include": ["src/**/*"]
 }
