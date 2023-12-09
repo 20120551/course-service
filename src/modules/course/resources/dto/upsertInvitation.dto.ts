@@ -18,4 +18,6 @@ export class UpdateInvitationDto {
   state: InvitationState;
 }
 
-export class DeleteInvitationDto extends BatchInvitationDto {}
+export class DeleteInvitationDto {
+  id: string;
+}

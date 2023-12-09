@@ -165,13 +165,13 @@ export class InvitationService implements IInvitationService {
     const filteredInvitations = intersectionBy(
       updateInvitationsDto,
       invitations,
-      'email',
+      'id',
     );
 
     const result = await this._prismaService.invitation.deleteMany({
       where: {
-        email: {
-          in: filteredInvitations.map(({ email }) => email),
+        id: {
+          in: filteredInvitations.map(({ id }) => id),
         },
       },
     });
