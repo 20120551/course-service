@@ -17,3 +17,11 @@ export const firebase = registerAs('firebase', () => ({
   appId: env.FIREBASE_APP_ID,
   measurementId: env.FIREBASE_MEMSUREMENT_ID,
 }));
+
+export const sendgrid = registerAs('sendgrid', () => ({
+  apiKey: env.SENDGRID_API_KEY,
+}));
+
+export const cryptojs = registerAs('cryptojs', () => ({
+  secretKey: env.CRYPTOJS_SECREY_KEY,
+}));

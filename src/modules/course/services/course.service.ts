@@ -1,9 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from 'utils/prisma';
-import { UpsertCourseDto, GetCourseFilterDto } from '../resources/dto';
+import {
+  UpsertCourseDto,
+  GetCourseFilterDto,
+  CreateAttendeeByCodeDto,
+  CreateAttendeeByTokenDto,
+} from '../resources/dto';
 import { Course, UserCourseRole } from 'utils/prisma/client';
+import { ICryptoJSService } from 'utils/hash/cryptojs';
+import { InvitationState } from 'utils/prisma/client';
 
 export const ICourseService = 'ICourseService';
+
 export interface ICourseService {
   getCourses(courseFilter: GetCourseFilterDto): Promise<Course[]>;
   getCourses(
@@ -17,11 +25,28 @@ export interface ICourseService {
   createCourse(course: UpsertCourseDto, userId: string): Promise<Course>;
   updateCourse(courseId: string, course: UpsertCourseDto): Promise<Course>;
   deleteCourse(courseId: string): Promise<Course>;
+
+  addAttendeeToCourseByCode(
+    userId: string,
+    courseId: string,
+    createAttendeeByCodeDto: CreateAttendeeByCodeDto,
+  ): Promise<void>;
+
+  addAttendeeToCourseByToken(
+    userId: string,
+    courseId: string,
+    createAttendeeByTokenDto: CreateAttendeeByTokenDto,
+  ): Promise<void>;
 }
 
 @Injectable()
 export class CourseService implements ICourseService {
-  constructor(private readonly _prismaService: PrismaService) {}
+  constructor(
+    private readonly _prismaService: PrismaService,
+    @Inject(ICryptoJSService)
+    private readonly _cryptoJSService: ICryptoJSService,
+  ) {}
+
   getCourses(courseFilter: GetCourseFilterDto): Promise<Course[]>;
   getCourses(
     courseFilter: GetCourseFilterDto,
@@ -126,5 +151,71 @@ export class CourseService implements ICourseService {
     });
 
     return result;
+  }
+
+  async addAttendeeToCourseByCode(
+    userId: string,
+    courseId: string,
+    createAttendeeByCodeDto: CreateAttendeeByCodeDto,
+  ): Promise<void> {
+    await this._prismaService.course.update({
+      where: {
+        id: courseId,
+        code: createAttendeeByCodeDto.code,
+      },
+      data: {
+        attendees: {
+          create: {
+            userId,
+            role: UserCourseRole.STUDENT,
+          },
+        },
+      },
+    });
+  }
+
+  async addAttendeeToCourseByToken(
+    userId: string,
+    courseId: string,
+    createAttendeeByTokenDto: CreateAttendeeByTokenDto,
+  ): Promise<void> {
+    const decrypt = this._cryptoJSService.decrypt<{
+      id: string;
+    }>(createAttendeeByTokenDto.token);
+
+    const invitation = await this._prismaService.invitation.findUnique({
+      where: {
+        id: decrypt.id,
+      },
+    });
+
+    if (invitation.courseId !== courseId) {
+      throw new BadRequestException('course id not matched');
+    }
+
+    await this._prismaService.course.update({
+      where: {
+        id: courseId,
+      },
+      data: {
+        attendees: {
+          create: {
+            userId,
+            role: invitation.role,
+            invitationId: invitation.id,
+          },
+        },
+        invitations: {
+          update: {
+            where: {
+              id: invitation.id,
+            },
+            data: {
+              state: InvitationState.ACCEPTED,
+            },
+          },
+        },
+      },
+    });
   }
 }

@@ -32,6 +32,7 @@
       "interceptors/*": ["./src/interceptors/*"],
       "configurations": ["./src/configurations"],
       "configurations/*": ["./src/configurations/*"],
+      "templates/*": ["./src/templates/*"],
     },
     "typeRoots": [
       "node_modules/@types",

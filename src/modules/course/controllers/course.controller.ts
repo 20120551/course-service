@@ -18,7 +18,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ICourseService } from '../services';
-import { GetCourseFilterDto, UpsertCourseDto } from '../resources/dto';
+import {
+  CreateAttendeeByCodeDto,
+  CreateAttendeeByTokenDto,
+  GetCourseFilterDto,
+  UpsertCourseDto,
+} from '../resources/dto';
 import { User } from 'utils/decorator/parameters';
 import { AuthenticatedGuard, UseCoursePolicies, UserResponse } from 'guards';
 import { UserCourseRole } from 'utils/prisma/client';
@@ -75,5 +80,33 @@ export class CourseController {
   @Delete(':id')
   deleteCourse(@Param('id') id: string) {
     return this._courseService.deleteCourse(id);
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Get(':id/attendee')
+  addAttendeeByToken(
+    @Param('id') id: string,
+    @Query() createAttendeeByTokenDto: CreateAttendeeByTokenDto,
+    @User() user: UserResponse,
+  ) {
+    return this._courseService.addAttendeeToCourseByToken(
+      user.userId,
+      id,
+      createAttendeeByTokenDto,
+    );
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Put(':id/attendee')
+  addAttendeeByCode(
+    @Param('id') id: string,
+    @Body() createAttendeeByCodeDto: CreateAttendeeByCodeDto,
+    @User() user: UserResponse,
+  ) {
+    return this._courseService.addAttendeeToCourseByCode(
+      user.userId,
+      id,
+      createAttendeeByCodeDto,
+    );
   }
 }

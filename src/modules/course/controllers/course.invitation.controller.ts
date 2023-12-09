@@ -12,6 +12,7 @@ import {
   HttpStatus,
   Inject,
   Param,
+  ParseArrayPipe,
   Post,
   Put,
   Query,
@@ -33,8 +34,8 @@ import { UserCourseRole } from 'utils/prisma/client';
 // courses/userid
 // courses/userid/courseid get, post, delete
 
-@UseGuards(AuthenticatedGuard)
 @UseCoursePolicies({ roles: [UserCourseRole.HOST, UserCourseRole.TEACHER] })
+@UseGuards(AuthenticatedGuard)
 @Controller('/api/course/:courseId/invitation')
 export class CourseInvitationController {
   constructor(
@@ -64,7 +65,8 @@ export class CourseInvitationController {
   @Post()
   createCourse(
     @Param('courseId') courseId: string,
-    @Body() createInvitationsDto: CreateInvitationDto[],
+    @Body(new ParseArrayPipe({ items: CreateInvitationDto }))
+    createInvitationsDto: CreateInvitationDto[],
     @User() user: UserResponse,
   ) {
     return this._invitationService.createInvitations(

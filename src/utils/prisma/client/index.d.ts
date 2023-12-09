@@ -3025,6 +3025,7 @@ export namespace Prisma {
   export type InvitationMinAggregateOutputType = {
     id: string | null
     email: string | null
+    role: $Enums.UserCourseRole | null
     invitedBy: string | null
     courseId: string | null
     state: $Enums.InvitationState | null
@@ -3034,6 +3035,7 @@ export namespace Prisma {
   export type InvitationMaxAggregateOutputType = {
     id: string | null
     email: string | null
+    role: $Enums.UserCourseRole | null
     invitedBy: string | null
     courseId: string | null
     state: $Enums.InvitationState | null
@@ -3043,6 +3045,7 @@ export namespace Prisma {
   export type InvitationCountAggregateOutputType = {
     id: number
     email: number
+    role: number
     invitedBy: number
     courseId: number
     state: number
@@ -3054,6 +3057,7 @@ export namespace Prisma {
   export type InvitationMinAggregateInputType = {
     id?: true
     email?: true
+    role?: true
     invitedBy?: true
     courseId?: true
     state?: true
@@ -3063,6 +3067,7 @@ export namespace Prisma {
   export type InvitationMaxAggregateInputType = {
     id?: true
     email?: true
+    role?: true
     invitedBy?: true
     courseId?: true
     state?: true
@@ -3072,6 +3077,7 @@ export namespace Prisma {
   export type InvitationCountAggregateInputType = {
     id?: true
     email?: true
+    role?: true
     invitedBy?: true
     courseId?: true
     state?: true
@@ -3154,6 +3160,7 @@ export namespace Prisma {
   export type InvitationGroupByOutputType = {
     id: string
     email: string
+    role: $Enums.UserCourseRole
     invitedBy: string
     courseId: string
     state: $Enums.InvitationState
@@ -3180,6 +3187,7 @@ export namespace Prisma {
   export type InvitationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     email?: boolean
+    role?: boolean
     invitedBy?: boolean
     courseId?: boolean
     state?: boolean
@@ -3191,6 +3199,7 @@ export namespace Prisma {
   export type InvitationSelectScalar = {
     id?: boolean
     email?: boolean
+    role?: boolean
     invitedBy?: boolean
     courseId?: boolean
     state?: boolean
@@ -3212,6 +3221,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       email: string
+      role: $Enums.UserCourseRole
       invitedBy: string
       courseId: string
       state: $Enums.InvitationState
@@ -3615,6 +3625,7 @@ export namespace Prisma {
   interface InvitationFieldRefs {
     readonly id: FieldRef<"Invitation", 'String'>
     readonly email: FieldRef<"Invitation", 'String'>
+    readonly role: FieldRef<"Invitation", 'UserCourseRole'>
     readonly invitedBy: FieldRef<"Invitation", 'String'>
     readonly courseId: FieldRef<"Invitation", 'String'>
     readonly state: FieldRef<"Invitation", 'InvitationState'>
@@ -4002,6 +4013,7 @@ export namespace Prisma {
   export const InvitationScalarFieldEnum: {
     id: 'id',
     email: 'email',
+    role: 'role',
     invitedBy: 'invitedBy',
     courseId: 'courseId',
     state: 'state',
@@ -4241,6 +4253,7 @@ export namespace Prisma {
     NOT?: InvitationWhereInput | InvitationWhereInput[]
     id?: StringFilter<"Invitation"> | string
     email?: StringFilter<"Invitation"> | string
+    role?: EnumUserCourseRoleFilter<"Invitation"> | $Enums.UserCourseRole
     invitedBy?: StringFilter<"Invitation"> | string
     courseId?: StringFilter<"Invitation"> | string
     state?: EnumInvitationStateFilter<"Invitation"> | $Enums.InvitationState
@@ -4252,6 +4265,7 @@ export namespace Prisma {
   export type InvitationOrderByWithRelationInput = {
     id?: SortOrder
     email?: SortOrder
+    role?: SortOrder
     invitedBy?: SortOrder
     courseId?: SortOrder
     state?: SortOrder
@@ -4266,6 +4280,7 @@ export namespace Prisma {
     OR?: InvitationWhereInput[]
     NOT?: InvitationWhereInput | InvitationWhereInput[]
     email?: StringFilter<"Invitation"> | string
+    role?: EnumUserCourseRoleFilter<"Invitation"> | $Enums.UserCourseRole
     invitedBy?: StringFilter<"Invitation"> | string
     courseId?: StringFilter<"Invitation"> | string
     state?: EnumInvitationStateFilter<"Invitation"> | $Enums.InvitationState
@@ -4277,6 +4292,7 @@ export namespace Prisma {
   export type InvitationOrderByWithAggregationInput = {
     id?: SortOrder
     email?: SortOrder
+    role?: SortOrder
     invitedBy?: SortOrder
     courseId?: SortOrder
     state?: SortOrder
@@ -4292,6 +4308,7 @@ export namespace Prisma {
     NOT?: InvitationScalarWhereWithAggregatesInput | InvitationScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Invitation"> | string
     email?: StringWithAggregatesFilter<"Invitation"> | string
+    role?: EnumUserCourseRoleWithAggregatesFilter<"Invitation"> | $Enums.UserCourseRole
     invitedBy?: StringWithAggregatesFilter<"Invitation"> | string
     courseId?: StringWithAggregatesFilter<"Invitation"> | string
     state?: EnumInvitationStateWithAggregatesFilter<"Invitation"> | $Enums.InvitationState
@@ -4426,6 +4443,7 @@ export namespace Prisma {
   export type InvitationCreateInput = {
     id?: string
     email: string
+    role: $Enums.UserCourseRole
     invitedBy: string
     state: $Enums.InvitationState
     createdAt?: Date | string
@@ -4436,6 +4454,7 @@ export namespace Prisma {
   export type InvitationUncheckedCreateInput = {
     id?: string
     email: string
+    role: $Enums.UserCourseRole
     invitedBy: string
     courseId: string
     state: $Enums.InvitationState
@@ -4446,6 +4465,7 @@ export namespace Prisma {
   export type InvitationUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     invitedBy?: StringFieldUpdateOperationsInput | string
     state?: EnumInvitationStateFieldUpdateOperationsInput | $Enums.InvitationState
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4456,6 +4476,7 @@ export namespace Prisma {
   export type InvitationUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     invitedBy?: StringFieldUpdateOperationsInput | string
     courseId?: StringFieldUpdateOperationsInput | string
     state?: EnumInvitationStateFieldUpdateOperationsInput | $Enums.InvitationState
@@ -4466,6 +4487,7 @@ export namespace Prisma {
   export type InvitationCreateManyInput = {
     id?: string
     email: string
+    role: $Enums.UserCourseRole
     invitedBy: string
     courseId: string
     state: $Enums.InvitationState
@@ -4475,6 +4497,7 @@ export namespace Prisma {
   export type InvitationUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     invitedBy?: StringFieldUpdateOperationsInput | string
     state?: EnumInvitationStateFieldUpdateOperationsInput | $Enums.InvitationState
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4483,6 +4506,7 @@ export namespace Prisma {
   export type InvitationUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     invitedBy?: StringFieldUpdateOperationsInput | string
     courseId?: StringFieldUpdateOperationsInput | string
     state?: EnumInvitationStateFieldUpdateOperationsInput | $Enums.InvitationState
@@ -4703,6 +4727,7 @@ export namespace Prisma {
   export type InvitationCountOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
+    role?: SortOrder
     invitedBy?: SortOrder
     courseId?: SortOrder
     state?: SortOrder
@@ -4712,6 +4737,7 @@ export namespace Prisma {
   export type InvitationMaxOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
+    role?: SortOrder
     invitedBy?: SortOrder
     courseId?: SortOrder
     state?: SortOrder
@@ -4721,6 +4747,7 @@ export namespace Prisma {
   export type InvitationMinOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
+    role?: SortOrder
     invitedBy?: SortOrder
     courseId?: SortOrder
     state?: SortOrder
@@ -5063,6 +5090,7 @@ export namespace Prisma {
   export type InvitationCreateWithoutCourseInput = {
     id?: string
     email: string
+    role: $Enums.UserCourseRole
     invitedBy: string
     state: $Enums.InvitationState
     createdAt?: Date | string
@@ -5072,6 +5100,7 @@ export namespace Prisma {
   export type InvitationUncheckedCreateWithoutCourseInput = {
     id?: string
     email: string
+    role: $Enums.UserCourseRole
     invitedBy: string
     state: $Enums.InvitationState
     createdAt?: Date | string
@@ -5134,6 +5163,7 @@ export namespace Prisma {
     NOT?: InvitationScalarWhereInput | InvitationScalarWhereInput[]
     id?: StringFilter<"Invitation"> | string
     email?: StringFilter<"Invitation"> | string
+    role?: EnumUserCourseRoleFilter<"Invitation"> | $Enums.UserCourseRole
     invitedBy?: StringFilter<"Invitation"> | string
     courseId?: StringFilter<"Invitation"> | string
     state?: EnumInvitationStateFilter<"Invitation"> | $Enums.InvitationState
@@ -5195,6 +5225,7 @@ export namespace Prisma {
   export type InvitationCreateWithoutAttendeeInput = {
     id?: string
     email: string
+    role: $Enums.UserCourseRole
     invitedBy: string
     state: $Enums.InvitationState
     createdAt?: Date | string
@@ -5204,6 +5235,7 @@ export namespace Prisma {
   export type InvitationUncheckedCreateWithoutAttendeeInput = {
     id?: string
     email: string
+    role: $Enums.UserCourseRole
     invitedBy: string
     courseId: string
     state: $Enums.InvitationState
@@ -5260,6 +5292,7 @@ export namespace Prisma {
   export type InvitationUpdateWithoutAttendeeInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     invitedBy?: StringFieldUpdateOperationsInput | string
     state?: EnumInvitationStateFieldUpdateOperationsInput | $Enums.InvitationState
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5269,6 +5302,7 @@ export namespace Prisma {
   export type InvitationUncheckedUpdateWithoutAttendeeInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     invitedBy?: StringFieldUpdateOperationsInput | string
     courseId?: StringFieldUpdateOperationsInput | string
     state?: EnumInvitationStateFieldUpdateOperationsInput | $Enums.InvitationState
@@ -5378,6 +5412,7 @@ export namespace Prisma {
   export type InvitationCreateManyCourseInput = {
     id?: string
     email: string
+    role: $Enums.UserCourseRole
     invitedBy: string
     state: $Enums.InvitationState
     createdAt?: Date | string
@@ -5393,6 +5428,7 @@ export namespace Prisma {
   export type InvitationUpdateWithoutCourseInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     invitedBy?: StringFieldUpdateOperationsInput | string
     state?: EnumInvitationStateFieldUpdateOperationsInput | $Enums.InvitationState
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5402,6 +5438,7 @@ export namespace Prisma {
   export type InvitationUncheckedUpdateWithoutCourseInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     invitedBy?: StringFieldUpdateOperationsInput | string
     state?: EnumInvitationStateFieldUpdateOperationsInput | $Enums.InvitationState
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5411,6 +5448,7 @@ export namespace Prisma {
   export type InvitationUncheckedUpdateManyWithoutCourseInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     invitedBy?: StringFieldUpdateOperationsInput | string
     state?: EnumInvitationStateFieldUpdateOperationsInput | $Enums.InvitationState
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
