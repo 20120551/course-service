@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Course, UserCourseRole } from '@prisma/client';
 import { PrismaService } from 'utils/prisma';
 import { UpsertCourseDto, GetCourseFilterDto } from '../resources/dto';
+import { Course, UserCourseRole } from 'utils/prisma/client';
 
 export const ICourseService = 'ICourseService';
 export interface ICourseService {

@@ -6,10 +6,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { UserCourseRole } from '@prisma/client';
 import { COURSE_ROLES_KEY } from 'configurations/role.config';
 import { Request } from 'express';
 import { PrismaService } from 'utils/prisma';
+import { UserCourseRole } from 'utils/prisma/client';
 
 export const CourseRoles = (...roles: any[]) =>
   SetMetadata(COURSE_ROLES_KEY, roles);

@@ -21,7 +21,7 @@ import { ICourseService } from '../services';
 import { GetCourseFilterDto, UpsertCourseDto } from '../resources/dto';
 import { User } from 'utils/decorator/parameters';
 import { AuthenticatedGuard, UseCoursePolicies, UserResponse } from 'guards';
-import { UserCourseRole } from '@prisma/client';
+import { UserCourseRole } from 'utils/prisma/client';
 
 // admin //
 // courses

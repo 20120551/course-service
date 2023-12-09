@@ -1,6 +1,6 @@
-import { InvitationState } from '@prisma/client';
 import { IsEmail, IsString } from 'class-validator';
 import { defaultValue } from 'utils/decorator/parameters';
+import { InvitationState } from 'utils/prisma/client';
 
 export class BatchInvitationDto {
   @IsEmail()

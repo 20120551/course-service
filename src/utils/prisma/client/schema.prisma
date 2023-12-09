@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/utils/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Course {
+  id          String       @id @default(uuid())
+  name        String
+  desc        String?
+  code        String
+  background  String?
+  invitations Invitation[]
+  attendees   UserCourse[]
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  @@map("course")
+}
+
+model UserCourse {
+  userId       String         @map("user_id")
+  courseId     String         @map("course_id")
+  course       Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  role         UserCourseRole
+  invitationId String?        @unique() @map("invitation_id")
+  invitation   Invitation?    @relation(fields: [invitationId], references: [id])
+  joinedAt     DateTime       @default(now()) @map("joined_at")
+
+  @@id([userId, courseId])
+  @@map("user_course")
+}
+
+model Invitation {
+  id        String          @id @default(uuid())
+  email     String
+  invitedBy String          @map("invited_by")
+  course    Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId  String          @map("course_id")
+  state     InvitationState
+  attendee  UserCourse?
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  @@map("invitation")
+}
+
+enum UserCourseRole {
+  HOST
+  TEACHER
+  STUDENT
+
+  @@map("user_course_role")
+}
+
+enum InvitationState {
+  PROCESSING
+  SENT
+  ACCEPTED
+  REJECTED
+
+  @@map("invitation_state")
+}

@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'utils/prisma';
-import { Invitation, PrismaClient } from '@prisma/client';
 import {
   CreateInvitationDto,
   GetInvitationFilterDto,
@@ -10,6 +9,7 @@ import {
 import { differenceBy, intersectionBy, isEmpty } from 'lodash';
 import BPromise from 'bluebird';
 import { BatchResponse } from '../resources/response';
+import { Invitation, PrismaClient } from 'utils/prisma/client';
 
 export const IInvitationService = 'IInvitationService';
 export interface IInvitationService {
