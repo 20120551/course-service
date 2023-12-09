@@ -11,3 +11,9 @@ export class ForbiddenException extends HttpException {
     super(message, HttpStatus.FORBIDDEN);
   }
 }
+
+export class BadRequestException extends HttpException {
+  constructor(message: string) {
+    super(message, HttpStatus.BAD_REQUEST);
+  }
+}
