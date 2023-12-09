@@ -32,12 +32,12 @@ export class CourseRoleGuard implements CanActivate {
       },
     });
 
-    const requiredRoles = this._reflector.getAllAndOverride<any[]>(
+    const allowRoles = this._reflector.getAllAndOverride<any[]>(
       COURSE_ROLES_KEY,
       [context.getHandler(), context.getClass()],
     );
 
-    if (requiredRoles.some((_role) => _role === role)) {
+    if (allowRoles.some((_role) => _role === role)) {
       return true;
     }
 

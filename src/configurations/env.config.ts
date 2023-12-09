@@ -17,7 +17,3 @@ export const firebase = registerAs('firebase', () => ({
   appId: env.FIREBASE_APP_ID,
   measurementId: env.FIREBASE_MEMSUREMENT_ID,
 }));
-
-export const redis = registerAs('redis', () => ({
-  url: env.REDIS_URL,
-}));
