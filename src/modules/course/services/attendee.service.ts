@@ -129,10 +129,32 @@ export class AttendeeService implements IAttendeeService {
       where: {
         code: createAttendeeByCodeDto.code,
       },
+      include: {
+        attendees: {
+          where: {
+            role: UserCourseRole.HOST,
+          },
+        },
+      },
     });
 
     if (!course) {
       throw new BadRequestException('not found course with code');
+    }
+
+    const attendee = await this._prismaService.userCourse.findUnique({
+      where: {
+        userId_courseId: {
+          userId: user.userId,
+          courseId: course.id,
+        },
+      },
+    });
+
+    // joined
+    if (attendee) {
+      const res = await this._getCourseResponse(course, user);
+      return res;
     }
 
     const result = await this._prismaService.course.update({
@@ -163,28 +185,8 @@ export class AttendeeService implements IAttendeeService {
       );
     }
 
-    const { attendees, ...payload } = result;
-
-    const token = await this._getToken();
-    const res = await this._auth0Client.get(
-      `/api/v2/users/${attendees[0].userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    return {
-      ...payload,
-      host: {
-        ...attendees[0],
-        ...res.data,
-      },
-      profile: {
-        ...user,
-      },
-    };
+    const res = await this._getCourseResponse(result, user);
+    return res;
   }
 
   async addAttendeeToCourseByToken(
@@ -297,5 +299,30 @@ export class AttendeeService implements IAttendeeService {
   private async _getToken() {
     const { access_token } = await this._auth0Service.signToken();
     return access_token;
+  }
+
+  private async _getCourseResponse(course: any, user: UserResponse) {
+    const { attendees, ...payload } = course;
+
+    const token = await this._getToken();
+    const res = await this._auth0Client.get(
+      `/api/v2/users/${attendees[0].userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    return {
+      ...payload,
+      host: {
+        ...attendees[0],
+        ...res.data,
+      },
+      profile: {
+        ...user,
+      },
+    };
   }
 }

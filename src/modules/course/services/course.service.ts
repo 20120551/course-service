@@ -230,11 +230,18 @@ export class CourseService implements ICourseService {
         concurrency: 10,
       },
     );
+
+    const res = await this._auth0Client.get(`/api/v2/users/${host[0].userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
     return {
       ...payload,
       attendees: responseAttendees,
       invitations: notAlreadyAcceptedInvitations,
-      host: { ...host[0], ...(user || {}) },
+      host: { ...host[0], ...res.data },
     };
   }
 
@@ -275,9 +282,7 @@ export class CourseService implements ICourseService {
           attendees: true,
         },
       });
-
-      break;
-    } while (attempt < 10);
+    } while (attempt < 10 && result === null);
 
     if (result === null) {
       throw new BadRequestException(
