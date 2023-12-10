@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { Response } from 'express';
+import { Prisma } from 'utils/prisma/client';
 
 @Catch(Error)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -34,6 +35,44 @@ export class HttpExceptionFilter implements ExceptionFilter {
         message: typeof res === 'string' ? res : res['message'],
         error: exception.message,
       });
+    } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+      console.log(exception);
+      if (exception.code === 'P2002') {
+        // Example: Unique constraint violation
+        response.status(400).json({
+          statusCode: '400',
+          message: 'Bad Request',
+          error: exception.meta?.cause || 'Duplicate entry found',
+        });
+      } else if (exception.code === 'P2016') {
+        // Example: Record not found
+        response.status(404).json({
+          statusCode: '404',
+          message: 'Not Found',
+          error: exception.meta?.cause || 'Record not found',
+        });
+      } else if (exception.code === 'P2003') {
+        // Example: Foreign key constraint violation
+        response.status(400).json({
+          statusCode: '400',
+          message: 'Bad Request',
+          error: exception.meta?.cause || 'Foreign key constraint violation',
+        });
+      } else if (exception.code === 'P2025') {
+        // Example: Invalid data input
+        response.status(400).json({
+          statusCode: '400',
+          message: 'Unprocessable Entity',
+          error: exception.meta?.cause || 'Invalid data input',
+        });
+      } else {
+        // Handle other Prisma ORM errors or unknown errors
+        response.status(500).json({
+          statusCode: '500',
+          message: 'Internal Server Error',
+          error: exception.meta?.cause || 'An unexpected error occurred',
+        });
+      }
     } else {
       return response.status(500).json({
         statusCode: 500,

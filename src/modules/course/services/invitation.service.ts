@@ -113,6 +113,7 @@ export class InvitationService implements IInvitationService {
       const encrypt = this._cryptoJSService.encrypt({
         id: invitation.id,
       });
+
       const url = `${process.env.FE_BASE_URL}/course/${courseId}/attendee?token=${encrypt}`;
       const formatHtml = invitationTemplate.default
         .replaceAll('{{name}}', invitation.email)

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { auth0, cryptojs, sendgrid } from 'configurations/env.config';
+import { auth0, cryptojs, firebase, sendgrid } from 'configurations/env.config';
 import { CourseModule } from 'modules/course/course.module';
 import { Auth0Module, Auth0ModuleOptions } from 'utils/auth0';
 import { PrismaModule } from 'utils/prisma';
@@ -9,7 +9,7 @@ import { PrismaModule } from 'utils/prisma';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [auth0, sendgrid, cryptojs],
+      load: [auth0, sendgrid, cryptojs, firebase],
     }),
     Auth0Module.forRootAsync({
       global: true,

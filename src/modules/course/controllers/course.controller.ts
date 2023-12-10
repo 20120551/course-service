@@ -15,18 +15,22 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ICourseService } from '../services';
 import {
   CreateAttendeeByCodeDto,
   CreateAttendeeByTokenDto,
   GetCourseFilterDto,
+  SwitchAttendeeRoleDto,
   UpsertCourseDto,
 } from '../resources/dto';
 import { User } from 'utils/decorator/parameters';
 import { AuthenticatedGuard, UseCoursePolicies, UserResponse } from 'guards';
 import { UserCourseRole } from 'utils/prisma/client';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 // admin //
 // courses
@@ -67,6 +71,23 @@ export class CourseController {
 
   @UseCoursePolicies({ roles: [UserCourseRole.HOST, UserCourseRole.TEACHER] })
   @HttpCode(HttpStatus.OK)
+  @Put('/:id/background')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadAvatar(
+    @UploadedFile() file: Express.Multer.File,
+    @Param('id') id: string,
+  ) {
+    const payload = {
+      filename: file.originalname,
+      buffer: file.buffer,
+      mimeType: file.mimetype,
+    };
+
+    return this._courseService.uploadCourseBackground(id, payload);
+  }
+
+  @UseCoursePolicies({ roles: [UserCourseRole.HOST, UserCourseRole.TEACHER] })
+  @HttpCode(HttpStatus.OK)
   @Put(':id')
   updateCourse(
     @Param('id') id: string,
@@ -75,38 +96,10 @@ export class CourseController {
     return this._courseService.updateCourse(id, upsertCourseDto);
   }
 
-  @UseCoursePolicies({ roles: [UserCourseRole.HOST, UserCourseRole.TEACHER] })
+  @UseCoursePolicies({ roles: [UserCourseRole.HOST] })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   deleteCourse(@Param('id') id: string) {
     return this._courseService.deleteCourse(id);
-  }
-
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Get(':id/attendee')
-  addAttendeeByToken(
-    @Param('id') id: string,
-    @Query() createAttendeeByTokenDto: CreateAttendeeByTokenDto,
-    @User() user: UserResponse,
-  ) {
-    return this._courseService.addAttendeeToCourseByToken(
-      user.userId,
-      id,
-      createAttendeeByTokenDto,
-    );
-  }
-
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Put(':id/attendee')
-  addAttendeeByCode(
-    @Param('id') id: string,
-    @Body() createAttendeeByCodeDto: CreateAttendeeByCodeDto,
-    @User() user: UserResponse,
-  ) {
-    return this._courseService.addAttendeeToCourseByCode(
-      user.userId,
-      id,
-      createAttendeeByCodeDto,
-    );
   }
 }

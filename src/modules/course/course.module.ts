@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import {
   CourseAdminController,
+  CourseAttendeeController,
   CourseController,
   CourseInvitationController,
 } from './controllers';
@@ -14,6 +15,7 @@ import { SendgridModule } from 'utils/sendgrid/sendgrid.module';
 import { ConfigService } from '@nestjs/config';
 import { SendgridModuleOptions } from 'utils/sendgrid';
 import { CryptoJSModule, CryptoJSModuleOptions } from 'utils/hash/cryptojs';
+import { FirebaseModule, FirebaseModuleOptions } from 'utils/firebase';
 
 @Module({
   imports: [
@@ -34,11 +36,20 @@ import { CryptoJSModule, CryptoJSModuleOptions } from 'utils/hash/cryptojs';
       },
       inject: [ConfigService],
     }),
+
+    FirebaseModule.forRootAsync({
+      useFactory: (configService: ConfigService) => {
+        const firebase = configService.get<FirebaseModuleOptions>('firebase');
+        return firebase;
+      },
+      inject: [ConfigService],
+    }),
   ],
   controllers: [
     CourseController,
     CourseAdminController,
     CourseInvitationController,
+    CourseAttendeeController,
   ],
   providers: [
     {
