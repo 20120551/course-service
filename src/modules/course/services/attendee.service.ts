@@ -5,11 +5,12 @@ import {
   CreateAttendeeByTokenDto,
   SwitchAttendeeRoleDto,
 } from '../resources/dto';
-import { UserCourseRole } from 'utils/prisma/client';
+import { Course, UserCourseRole } from 'utils/prisma/client';
 import { ICryptoJSService } from 'utils/hash/cryptojs';
 import { InvitationState } from 'utils/prisma/client';
 import { PrismaClient } from 'utils/prisma/client';
 import { UserResponse } from 'guards';
+import { CourseResponse } from '../resources/response';
 
 export const IAttendeeService = 'IAttendeeService';
 
@@ -25,12 +26,12 @@ export interface IAttendeeService {
   addAttendeeToCourseByCode(
     user: UserResponse,
     createAttendeeByCodeDto: CreateAttendeeByCodeDto,
-  ): Promise<void>;
+  ): Promise<CourseResponse>;
 
   addAttendeeToCourseByToken(
     user: UserResponse,
     createAttendeeByTokenDto: CreateAttendeeByTokenDto,
-  ): Promise<void>;
+  ): Promise<CourseResponse>;
 }
 
 @Injectable()
@@ -48,7 +49,7 @@ export class AttendeeService implements IAttendeeService {
     switchAttendeeRoleDto: SwitchAttendeeRoleDto,
   ): Promise<void> {
     if (user.userId === switchAttendeeRoleDto.attendeeId) {
-      return;
+      throw new BadRequestException('cannot be switch your own role');
     }
 
     const attendee = await this._prismaService.userCourse.findFirst({
@@ -113,8 +114,8 @@ export class AttendeeService implements IAttendeeService {
   async addAttendeeToCourseByCode(
     user: UserResponse,
     createAttendeeByCodeDto: CreateAttendeeByCodeDto,
-  ): Promise<void> {
-    await this._prismaService.course.update({
+  ): Promise<CourseResponse> {
+    const result = await this._prismaService.course.update({
       where: {
         code: createAttendeeByCodeDto.code,
       },
@@ -128,13 +129,14 @@ export class AttendeeService implements IAttendeeService {
         },
       },
     });
+
+    return result;
   }
 
   async addAttendeeToCourseByToken(
     user: UserResponse,
     createAttendeeByTokenDto: CreateAttendeeByTokenDto,
-  ): Promise<void> {
-    console.log(createAttendeeByTokenDto);
+  ): Promise<CourseResponse> {
     const decrypt = this._cryptoJSService.decrypt<{
       id: string;
     }>(createAttendeeByTokenDto.token.replaceAll(' ', '+'));
@@ -149,7 +151,7 @@ export class AttendeeService implements IAttendeeService {
       throw new BadRequestException('not found invitation');
     }
 
-    await this._prismaService.course.update({
+    const result = await this._prismaService.course.update({
       where: {
         id: invitation.courseId,
       },
@@ -174,6 +176,8 @@ export class AttendeeService implements IAttendeeService {
         },
       },
     });
+
+    return result;
   }
 
   async leaveCourse(courseId: string, user: UserResponse): Promise<void> {

@@ -30,7 +30,7 @@ export class CourseAttendeeController {
     private readonly _attendeeService: IAttendeeService,
   ) {}
 
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @Get('token')
   addAttendeeByToken(
     @Query() createAttendeeByTokenDto: CreateAttendeeByTokenDto,
@@ -42,7 +42,7 @@ export class CourseAttendeeController {
     );
   }
 
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @Put('code')
   addAttendeeByCode(
     @Body() createAttendeeByCodeDto: CreateAttendeeByCodeDto,

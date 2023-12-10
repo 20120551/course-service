@@ -209,9 +209,29 @@ export class CourseService implements ICourseService {
     const notAlreadyAcceptedInvitations = invitations.filter(
       (invitation) => invitation.state !== InvitationState.ACCEPTED,
     );
+
+    const token = await this._getToken();
+    const responseAttendees = await BPromise.map(
+      _attendees,
+      async (attendee) => {
+        const res = await this._auth0Client.get(
+          `/api/v2/users/${attendee.userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        return { ...attendee, ...res.data };
+      },
+      {
+        concurrency: 10,
+      },
+    );
     return {
       ...payload,
-      attendees: _attendees,
+      attendees: responseAttendees,
       invitations: notAlreadyAcceptedInvitations,
       host: { ...host[0], ...(user || {}) },
     };
