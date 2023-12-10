@@ -85,20 +85,32 @@ export class InvitationService implements IInvitationService {
     courseId: string,
     createInvitationsDto: CreateInvitationDto[],
   ): Promise<BatchResponse> {
-    const invitations = await this._prismaService.invitation.findMany({
+    const course = await this._prismaService.course.findUnique({
       where: {
-        courseId,
+        id: courseId,
       },
       include: {
-        course: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+        invitations: {
+          select: {
+            email: true,
+          },
+        },
       },
     });
 
+    // filter by invitation
     const filteredInvitations = differenceBy(
       createInvitationsDto,
-      invitations,
+      [...course.attendees, ...course.invitations],
       'email',
     );
+
+    //
 
     if (isEmpty(filteredInvitations)) {
       return {
@@ -119,7 +131,7 @@ export class InvitationService implements IInvitationService {
         id: invitation.id,
       });
 
-      const url = `${process.env.FE_BASE_URL}/course/${courseId}/attendee?token=${encrypt}`;
+      const url = `${process.env.FE_BASE_URL}/course/attendee?token=${encrypt}`;
       const formatHtml = invitationTemplate.default
         .replaceAll('{{name}}', invitation.email)
         .replaceAll('{{action_url}}', url)

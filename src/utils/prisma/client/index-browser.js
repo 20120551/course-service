@@ -119,6 +119,7 @@ exports.Prisma.CourseScalarFieldEnum = {
 exports.Prisma.UserCourseScalarFieldEnum = {
   userId: 'userId',
   courseId: 'courseId',
+  email: 'email',
   role: 'role',
   invitationId: 'invitationId',
   joinedAt: 'joinedAt'

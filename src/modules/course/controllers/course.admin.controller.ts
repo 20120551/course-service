@@ -36,10 +36,10 @@ export class CourseAdminController {
   @HttpCode(HttpStatus.CREATED)
   @Post()
   createCourse(@Body() upsertCourseDto: UpsertCourseDto) {
-    return this._courseService.createCourse(
-      upsertCourseDto,
-      upsertCourseDto.userId,
-    );
+    // return this._courseService.createCourse(
+    //   upsertCourseDto,
+    //   {userId: upsertCourseDto.userId},
+    // );
   }
 
   @HttpCode(HttpStatus.OK)

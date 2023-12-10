@@ -19,10 +19,8 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ICourseService } from '../services';
+import { IAttendeeService, ICourseService } from '../services';
 import {
-  CreateAttendeeByCodeDto,
-  CreateAttendeeByTokenDto,
   GetCourseFilterDto,
   SwitchAttendeeRoleDto,
   UpsertCourseDto,
@@ -43,6 +41,8 @@ export class CourseController {
   constructor(
     @Inject(ICourseService)
     private readonly _courseService: ICourseService,
+    @Inject(IAttendeeService)
+    private readonly _attendeeService: IAttendeeService,
   ) {}
 
   @HttpCode(HttpStatus.OK)
@@ -66,7 +66,7 @@ export class CourseController {
     @Body() upsertCourseDto: UpsertCourseDto,
     @User() user: UserResponse,
   ) {
-    return this._courseService.createCourse(upsertCourseDto, user.userId);
+    return this._courseService.createCourse(upsertCourseDto, user);
   }
 
   @UseCoursePolicies({ roles: [UserCourseRole.HOST, UserCourseRole.TEACHER] })
@@ -101,5 +101,20 @@ export class CourseController {
   @Delete(':id')
   deleteCourse(@Param('id') id: string) {
     return this._courseService.deleteCourse(id);
+  }
+
+  @UseCoursePolicies({ roles: [UserCourseRole.HOST] })
+  @HttpCode(HttpStatus.OK)
+  @Put(':id/role')
+  switchAttendee(
+    @Param('id') courseId: string,
+    @Body() switchAttendeeDto: SwitchAttendeeRoleDto,
+    @User() user: UserResponse,
+  ) {
+    return this._attendeeService.switchAttendeeRole(
+      courseId,
+      user,
+      switchAttendeeDto,
+    );
   }
 }

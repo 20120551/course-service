@@ -10,7 +10,6 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
-  Param,
   Put,
   Query,
   UseGuards,
@@ -19,14 +18,12 @@ import { IAttendeeService } from '../services';
 import {
   CreateAttendeeByCodeDto,
   CreateAttendeeByTokenDto,
-  SwitchAttendeeRoleDto,
 } from '../resources/dto';
 import { User } from 'utils/decorator/parameters';
-import { AuthenticatedGuard, UseCoursePolicies, UserResponse } from 'guards';
-import { UserCourseRole } from 'utils/prisma/client';
+import { AuthenticatedGuard, UserResponse } from 'guards';
 
 @UseGuards(AuthenticatedGuard)
-@Controller('/api/course/:id/attendee')
+@Controller('/api/course/attendee')
 export class CourseAttendeeController {
   constructor(
     @Inject(IAttendeeService)
@@ -34,45 +31,26 @@ export class CourseAttendeeController {
   ) {}
 
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Get()
+  @Get('token')
   addAttendeeByToken(
-    @Param('id') id: string,
     @Query() createAttendeeByTokenDto: CreateAttendeeByTokenDto,
     @User() user: UserResponse,
   ): any {
     return this._attendeeService.addAttendeeToCourseByToken(
-      user.userId,
-      id,
+      user,
       createAttendeeByTokenDto,
     );
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Put()
+  @Put('code')
   addAttendeeByCode(
-    @Param('id') id: string,
     @Body() createAttendeeByCodeDto: CreateAttendeeByCodeDto,
     @User() user: UserResponse,
   ) {
     return this._attendeeService.addAttendeeToCourseByCode(
-      user.userId,
-      id,
+      user,
       createAttendeeByCodeDto,
-    );
-  }
-
-  @UseCoursePolicies({ roles: [UserCourseRole.HOST] })
-  @HttpCode(HttpStatus.OK)
-  @Put('role')
-  switchAttendee(
-    @Param('id') id: string,
-    @Body() switchAttendeeDto: SwitchAttendeeRoleDto,
-    @User() user: UserResponse,
-  ) {
-    return this._attendeeService.switchAttendeeRole(
-      id,
-      user.userId,
-      switchAttendeeDto,
     );
   }
 }

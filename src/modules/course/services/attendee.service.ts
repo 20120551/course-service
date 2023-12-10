@@ -9,25 +9,24 @@ import { UserCourseRole } from 'utils/prisma/client';
 import { ICryptoJSService } from 'utils/hash/cryptojs';
 import { InvitationState } from 'utils/prisma/client';
 import { PrismaClient } from 'utils/prisma/client';
+import { UserResponse } from 'guards';
 
 export const IAttendeeService = 'IAttendeeService';
 
 export interface IAttendeeService {
   switchAttendeeRole(
     courseId: string,
-    userId: string,
+    user: UserResponse,
     switchAttendeeRoleDto: SwitchAttendeeRoleDto,
   ): Promise<void>;
 
   addAttendeeToCourseByCode(
-    userId: string,
-    courseId: string,
+    user: UserResponse,
     createAttendeeByCodeDto: CreateAttendeeByCodeDto,
   ): Promise<void>;
 
   addAttendeeToCourseByToken(
-    userId: string,
-    courseId: string,
+    user: UserResponse,
     createAttendeeByTokenDto: CreateAttendeeByTokenDto,
   ): Promise<void>;
 }
@@ -43,10 +42,10 @@ export class AttendeeService implements IAttendeeService {
 
   async switchAttendeeRole(
     courseId: string,
-    userId: string,
+    user: UserResponse,
     switchAttendeeRoleDto: SwitchAttendeeRoleDto,
   ): Promise<void> {
-    if (userId === switchAttendeeRoleDto.attendeeId) {
+    if (user.userId === switchAttendeeRoleDto.attendeeId) {
       return;
     }
 
@@ -68,7 +67,7 @@ export class AttendeeService implements IAttendeeService {
           await context.userCourse.update({
             where: {
               userId_courseId: {
-                userId,
+                userId: user.userId,
                 courseId,
               },
             },
@@ -110,19 +109,18 @@ export class AttendeeService implements IAttendeeService {
   }
 
   async addAttendeeToCourseByCode(
-    userId: string,
-    courseId: string,
+    user: UserResponse,
     createAttendeeByCodeDto: CreateAttendeeByCodeDto,
   ): Promise<void> {
     await this._prismaService.course.update({
       where: {
-        id: courseId,
         code: createAttendeeByCodeDto.code,
       },
       data: {
         attendees: {
           create: {
-            userId,
+            userId: user.userId,
+            email: user.email,
             role: UserCourseRole.STUDENT,
           },
         },
@@ -131,10 +129,10 @@ export class AttendeeService implements IAttendeeService {
   }
 
   async addAttendeeToCourseByToken(
-    userId: string,
-    courseId: string,
+    user: UserResponse,
     createAttendeeByTokenDto: CreateAttendeeByTokenDto,
   ): Promise<void> {
+    console.log(createAttendeeByTokenDto);
     const decrypt = this._cryptoJSService.decrypt<{
       id: string;
     }>(createAttendeeByTokenDto.token.replaceAll(' ', '+'));
@@ -145,18 +143,19 @@ export class AttendeeService implements IAttendeeService {
       },
     });
 
-    if (invitation.courseId !== courseId) {
-      throw new BadRequestException('course id not matched');
+    if (!invitation) {
+      throw new BadRequestException('not found invitation');
     }
 
     await this._prismaService.course.update({
       where: {
-        id: courseId,
+        id: invitation.courseId,
       },
       data: {
         attendees: {
           create: {
-            userId,
+            userId: user.userId,
+            email: user.email,
             role: invitation.role,
             invitationId: invitation.id,
           },

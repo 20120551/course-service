@@ -2086,6 +2086,7 @@ export namespace Prisma {
   export type UserCourseMinAggregateOutputType = {
     userId: string | null
     courseId: string | null
+    email: string | null
     role: $Enums.UserCourseRole | null
     invitationId: string | null
     joinedAt: Date | null
@@ -2094,6 +2095,7 @@ export namespace Prisma {
   export type UserCourseMaxAggregateOutputType = {
     userId: string | null
     courseId: string | null
+    email: string | null
     role: $Enums.UserCourseRole | null
     invitationId: string | null
     joinedAt: Date | null
@@ -2102,6 +2104,7 @@ export namespace Prisma {
   export type UserCourseCountAggregateOutputType = {
     userId: number
     courseId: number
+    email: number
     role: number
     invitationId: number
     joinedAt: number
@@ -2112,6 +2115,7 @@ export namespace Prisma {
   export type UserCourseMinAggregateInputType = {
     userId?: true
     courseId?: true
+    email?: true
     role?: true
     invitationId?: true
     joinedAt?: true
@@ -2120,6 +2124,7 @@ export namespace Prisma {
   export type UserCourseMaxAggregateInputType = {
     userId?: true
     courseId?: true
+    email?: true
     role?: true
     invitationId?: true
     joinedAt?: true
@@ -2128,6 +2133,7 @@ export namespace Prisma {
   export type UserCourseCountAggregateInputType = {
     userId?: true
     courseId?: true
+    email?: true
     role?: true
     invitationId?: true
     joinedAt?: true
@@ -2209,6 +2215,7 @@ export namespace Prisma {
   export type UserCourseGroupByOutputType = {
     userId: string
     courseId: string
+    email: string | null
     role: $Enums.UserCourseRole
     invitationId: string | null
     joinedAt: Date
@@ -2234,6 +2241,7 @@ export namespace Prisma {
   export type UserCourseSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     userId?: boolean
     courseId?: boolean
+    email?: boolean
     role?: boolean
     invitationId?: boolean
     joinedAt?: boolean
@@ -2244,6 +2252,7 @@ export namespace Prisma {
   export type UserCourseSelectScalar = {
     userId?: boolean
     courseId?: boolean
+    email?: boolean
     role?: boolean
     invitationId?: boolean
     joinedAt?: boolean
@@ -2264,6 +2273,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       userId: string
       courseId: string
+      email: string | null
       role: $Enums.UserCourseRole
       invitationId: string | null
       joinedAt: Date
@@ -2666,6 +2676,7 @@ export namespace Prisma {
   interface UserCourseFieldRefs {
     readonly userId: FieldRef<"UserCourse", 'String'>
     readonly courseId: FieldRef<"UserCourse", 'String'>
+    readonly email: FieldRef<"UserCourse", 'String'>
     readonly role: FieldRef<"UserCourse", 'UserCourseRole'>
     readonly invitationId: FieldRef<"UserCourse", 'String'>
     readonly joinedAt: FieldRef<"UserCourse", 'DateTime'>
@@ -4002,6 +4013,7 @@ export namespace Prisma {
   export const UserCourseScalarFieldEnum: {
     userId: 'userId',
     courseId: 'courseId',
+    email: 'email',
     role: 'role',
     invitationId: 'invitationId',
     joinedAt: 'joinedAt'
@@ -4152,17 +4164,17 @@ export namespace Prisma {
 
   export type CourseWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    code?: string
     AND?: CourseWhereInput | CourseWhereInput[]
     OR?: CourseWhereInput[]
     NOT?: CourseWhereInput | CourseWhereInput[]
     name?: StringFilter<"Course"> | string
     desc?: StringNullableFilter<"Course"> | string | null
-    code?: StringFilter<"Course"> | string
     background?: StringNullableFilter<"Course"> | string | null
     createdAt?: DateTimeFilter<"Course"> | Date | string
     invitations?: InvitationListRelationFilter
     attendees?: UserCourseListRelationFilter
-  }, "id">
+  }, "id" | "code">
 
   export type CourseOrderByWithAggregationInput = {
     id?: SortOrder
@@ -4194,6 +4206,7 @@ export namespace Prisma {
     NOT?: UserCourseWhereInput | UserCourseWhereInput[]
     userId?: StringFilter<"UserCourse"> | string
     courseId?: StringFilter<"UserCourse"> | string
+    email?: StringNullableFilter<"UserCourse"> | string | null
     role?: EnumUserCourseRoleFilter<"UserCourse"> | $Enums.UserCourseRole
     invitationId?: StringNullableFilter<"UserCourse"> | string | null
     joinedAt?: DateTimeFilter<"UserCourse"> | Date | string
@@ -4204,6 +4217,7 @@ export namespace Prisma {
   export type UserCourseOrderByWithRelationInput = {
     userId?: SortOrder
     courseId?: SortOrder
+    email?: SortOrderInput | SortOrder
     role?: SortOrder
     invitationId?: SortOrderInput | SortOrder
     joinedAt?: SortOrder
@@ -4219,6 +4233,7 @@ export namespace Prisma {
     NOT?: UserCourseWhereInput | UserCourseWhereInput[]
     userId?: StringFilter<"UserCourse"> | string
     courseId?: StringFilter<"UserCourse"> | string
+    email?: StringNullableFilter<"UserCourse"> | string | null
     role?: EnumUserCourseRoleFilter<"UserCourse"> | $Enums.UserCourseRole
     joinedAt?: DateTimeFilter<"UserCourse"> | Date | string
     course?: XOR<CourseRelationFilter, CourseWhereInput>
@@ -4228,6 +4243,7 @@ export namespace Prisma {
   export type UserCourseOrderByWithAggregationInput = {
     userId?: SortOrder
     courseId?: SortOrder
+    email?: SortOrderInput | SortOrder
     role?: SortOrder
     invitationId?: SortOrderInput | SortOrder
     joinedAt?: SortOrder
@@ -4242,6 +4258,7 @@ export namespace Prisma {
     NOT?: UserCourseScalarWhereWithAggregatesInput | UserCourseScalarWhereWithAggregatesInput[]
     userId?: StringWithAggregatesFilter<"UserCourse"> | string
     courseId?: StringWithAggregatesFilter<"UserCourse"> | string
+    email?: StringNullableWithAggregatesFilter<"UserCourse"> | string | null
     role?: EnumUserCourseRoleWithAggregatesFilter<"UserCourse"> | $Enums.UserCourseRole
     invitationId?: StringNullableWithAggregatesFilter<"UserCourse"> | string | null
     joinedAt?: DateTimeWithAggregatesFilter<"UserCourse"> | Date | string
@@ -4388,6 +4405,7 @@ export namespace Prisma {
 
   export type UserCourseCreateInput = {
     userId: string
+    email?: string | null
     role: $Enums.UserCourseRole
     joinedAt?: Date | string
     course: CourseCreateNestedOneWithoutAttendeesInput
@@ -4397,6 +4415,7 @@ export namespace Prisma {
   export type UserCourseUncheckedCreateInput = {
     userId: string
     courseId: string
+    email?: string | null
     role: $Enums.UserCourseRole
     invitationId?: string | null
     joinedAt?: Date | string
@@ -4404,6 +4423,7 @@ export namespace Prisma {
 
   export type UserCourseUpdateInput = {
     userId?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     course?: CourseUpdateOneRequiredWithoutAttendeesNestedInput
@@ -4413,6 +4433,7 @@ export namespace Prisma {
   export type UserCourseUncheckedUpdateInput = {
     userId?: StringFieldUpdateOperationsInput | string
     courseId?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     invitationId?: NullableStringFieldUpdateOperationsInput | string | null
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4421,6 +4442,7 @@ export namespace Prisma {
   export type UserCourseCreateManyInput = {
     userId: string
     courseId: string
+    email?: string | null
     role: $Enums.UserCourseRole
     invitationId?: string | null
     joinedAt?: Date | string
@@ -4428,6 +4450,7 @@ export namespace Prisma {
 
   export type UserCourseUpdateManyMutationInput = {
     userId?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -4435,6 +4458,7 @@ export namespace Prisma {
   export type UserCourseUncheckedUpdateManyInput = {
     userId?: StringFieldUpdateOperationsInput | string
     courseId?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     invitationId?: NullableStringFieldUpdateOperationsInput | string | null
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4681,6 +4705,7 @@ export namespace Prisma {
   export type UserCourseCountOrderByAggregateInput = {
     userId?: SortOrder
     courseId?: SortOrder
+    email?: SortOrder
     role?: SortOrder
     invitationId?: SortOrder
     joinedAt?: SortOrder
@@ -4689,6 +4714,7 @@ export namespace Prisma {
   export type UserCourseMaxOrderByAggregateInput = {
     userId?: SortOrder
     courseId?: SortOrder
+    email?: SortOrder
     role?: SortOrder
     invitationId?: SortOrder
     joinedAt?: SortOrder
@@ -4697,6 +4723,7 @@ export namespace Prisma {
   export type UserCourseMinOrderByAggregateInput = {
     userId?: SortOrder
     courseId?: SortOrder
+    email?: SortOrder
     role?: SortOrder
     invitationId?: SortOrder
     joinedAt?: SortOrder
@@ -5119,6 +5146,7 @@ export namespace Prisma {
 
   export type UserCourseCreateWithoutCourseInput = {
     userId: string
+    email?: string | null
     role: $Enums.UserCourseRole
     joinedAt?: Date | string
     invitation?: InvitationCreateNestedOneWithoutAttendeeInput
@@ -5126,6 +5154,7 @@ export namespace Prisma {
 
   export type UserCourseUncheckedCreateWithoutCourseInput = {
     userId: string
+    email?: string | null
     role: $Enums.UserCourseRole
     invitationId?: string | null
     joinedAt?: Date | string
@@ -5192,6 +5221,7 @@ export namespace Prisma {
     NOT?: UserCourseScalarWhereInput | UserCourseScalarWhereInput[]
     userId?: StringFilter<"UserCourse"> | string
     courseId?: StringFilter<"UserCourse"> | string
+    email?: StringNullableFilter<"UserCourse"> | string | null
     role?: EnumUserCourseRoleFilter<"UserCourse"> | $Enums.UserCourseRole
     invitationId?: StringNullableFilter<"UserCourse"> | string | null
     joinedAt?: DateTimeFilter<"UserCourse"> | Date | string
@@ -5336,6 +5366,7 @@ export namespace Prisma {
 
   export type UserCourseCreateWithoutInvitationInput = {
     userId: string
+    email?: string | null
     role: $Enums.UserCourseRole
     joinedAt?: Date | string
     course: CourseCreateNestedOneWithoutAttendeesInput
@@ -5344,6 +5375,7 @@ export namespace Prisma {
   export type UserCourseUncheckedCreateWithoutInvitationInput = {
     userId: string
     courseId: string
+    email?: string | null
     role: $Enums.UserCourseRole
     joinedAt?: Date | string
   }
@@ -5397,6 +5429,7 @@ export namespace Prisma {
 
   export type UserCourseUpdateWithoutInvitationInput = {
     userId?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     course?: CourseUpdateOneRequiredWithoutAttendeesNestedInput
@@ -5405,6 +5438,7 @@ export namespace Prisma {
   export type UserCourseUncheckedUpdateWithoutInvitationInput = {
     userId?: StringFieldUpdateOperationsInput | string
     courseId?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -5420,6 +5454,7 @@ export namespace Prisma {
 
   export type UserCourseCreateManyCourseInput = {
     userId: string
+    email?: string | null
     role: $Enums.UserCourseRole
     invitationId?: string | null
     joinedAt?: Date | string
@@ -5456,6 +5491,7 @@ export namespace Prisma {
 
   export type UserCourseUpdateWithoutCourseInput = {
     userId?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     invitation?: InvitationUpdateOneWithoutAttendeeNestedInput
@@ -5463,6 +5499,7 @@ export namespace Prisma {
 
   export type UserCourseUncheckedUpdateWithoutCourseInput = {
     userId?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     invitationId?: NullableStringFieldUpdateOperationsInput | string | null
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5470,6 +5507,7 @@ export namespace Prisma {
 
   export type UserCourseUncheckedUpdateManyWithoutCourseInput = {
     userId?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumUserCourseRoleFieldUpdateOperationsInput | $Enums.UserCourseRole
     invitationId?: NullableStringFieldUpdateOperationsInput | string | null
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string

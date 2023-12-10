@@ -7,20 +7,23 @@ import {
 } from '../resources/dto';
 import { Course, UserCourse, UserCourseRole } from 'utils/prisma/client';
 import { IFirebaseStorageService } from 'utils/firebase';
+import { UserResponse } from 'guards';
 
 export const ICourseService = 'ICourseService';
 
 export interface ICourseService {
-  getCourses(courseFilter: GetCourseFilterDto): Promise<UserCourse[]>;
+  getCourses(
+    courseFilter: GetCourseFilterDto,
+  ): Promise<UserCourse[] | Course[]>;
   getCourses(
     courseFilter: GetCourseFilterDto,
     userId: string,
-  ): Promise<UserCourse[]>;
+  ): Promise<UserCourse[] | Course[]>;
 
   getCourse(courseId: string): Promise<Course>;
   getCourse(courseId: string, userId: string): Promise<Course>;
 
-  createCourse(course: UpsertCourseDto, userId: string): Promise<Course>;
+  createCourse(course: UpsertCourseDto, user: UserResponse): Promise<Course>;
   updateCourse(courseId: string, course: UpsertCourseDto): Promise<Course>;
   deleteCourse(courseId: string): Promise<Course>;
 
@@ -59,16 +62,18 @@ export class CourseService implements ICourseService {
     return result;
   }
 
-  getCourses(courseFilter: GetCourseFilterDto): Promise<UserCourse[]>;
+  getCourses(
+    courseFilter: GetCourseFilterDto,
+  ): Promise<UserCourse[] | Course[]>;
   getCourses(
     courseFilter: GetCourseFilterDto,
     userId: string,
-  ): Promise<UserCourse[]>;
+  ): Promise<UserCourse[] | Course[]>;
   async getCourses(
     courseFilter: GetCourseFilterDto,
     userId?: string,
-  ): Promise<UserCourse[]> {
-    let result: UserCourse[] = [];
+  ): Promise<UserCourse[] | Course[]> {
+    let result: UserCourse[] | Course[] = [];
     if (userId) {
       result = await this._prismaService.userCourse.findMany({
         ...courseFilter,
@@ -76,27 +81,21 @@ export class CourseService implements ICourseService {
           userId: userId,
         },
         include: {
-          course: true,
+          course: {
+            include: {
+              attendees: {
+                where: {
+                  role: UserCourseRole.HOST,
+                },
+              },
+            },
+          },
         },
       });
-      // result = await this._prismaService.course.findMany({
-      //   skip: courseFilter.skip,
-      //   take: courseFilter.take,
-      //   where: {
-      //     attendees: {
-      //       some: {
-      //         userId: userId,
-      //       },
-      //     },
-      //   },
-      // });
     } else {
-      // result = await this._prismaService.course.findMany({
-      //   skip: courseFilter.skip,
-      //   take: courseFilter.take,
-      // });
-      result = await this._prismaService.userCourse.findMany({
-        ...courseFilter,
+      result = await this._prismaService.course.findMany({
+        skip: courseFilter.skip,
+        take: courseFilter.take,
       });
     }
 
@@ -139,13 +138,17 @@ export class CourseService implements ICourseService {
     return result;
   }
 
-  async createCourse(course: UpsertCourseDto, userId: string): Promise<Course> {
+  async createCourse(
+    course: UpsertCourseDto,
+    user: UserResponse,
+  ): Promise<Course> {
     const result = await this._prismaService.course.create({
       data: {
         ...course,
         attendees: {
           create: {
-            userId: userId,
+            userId: user.userId,
+            email: user.email,
             role: UserCourseRole.HOST,
           },
         },
