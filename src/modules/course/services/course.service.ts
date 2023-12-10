@@ -5,19 +5,17 @@ import {
   GetCourseFilterDto,
   UploadFileDto,
 } from '../resources/dto';
-import { Course, UserCourseRole } from 'utils/prisma/client';
-import { ICryptoJSService } from 'utils/hash/cryptojs';
+import { Course, UserCourse, UserCourseRole } from 'utils/prisma/client';
 import { IFirebaseStorageService } from 'utils/firebase';
-import { PrismaClient } from 'utils/prisma/client';
 
 export const ICourseService = 'ICourseService';
 
 export interface ICourseService {
-  getCourses(courseFilter: GetCourseFilterDto): Promise<Course[]>;
+  getCourses(courseFilter: GetCourseFilterDto): Promise<UserCourse[]>;
   getCourses(
     courseFilter: GetCourseFilterDto,
     userId: string,
-  ): Promise<Course[]>;
+  ): Promise<UserCourse[]>;
 
   getCourse(courseId: string): Promise<Course>;
   getCourse(courseId: string, userId: string): Promise<Course>;
@@ -61,32 +59,44 @@ export class CourseService implements ICourseService {
     return result;
   }
 
-  getCourses(courseFilter: GetCourseFilterDto): Promise<Course[]>;
+  getCourses(courseFilter: GetCourseFilterDto): Promise<UserCourse[]>;
   getCourses(
     courseFilter: GetCourseFilterDto,
     userId: string,
-  ): Promise<Course[]>;
+  ): Promise<UserCourse[]>;
   async getCourses(
     courseFilter: GetCourseFilterDto,
     userId?: string,
-  ): Promise<Course[]> {
-    let result: Course[] = [];
+  ): Promise<UserCourse[]> {
+    let result: UserCourse[] = [];
     if (userId) {
-      result = await this._prismaService.course.findMany({
-        skip: courseFilter.skip,
-        take: courseFilter.take,
+      result = await this._prismaService.userCourse.findMany({
+        ...courseFilter,
         where: {
-          attendees: {
-            some: {
-              userId: userId,
-            },
-          },
+          userId: userId,
+        },
+        include: {
+          course: true,
         },
       });
+      // result = await this._prismaService.course.findMany({
+      //   skip: courseFilter.skip,
+      //   take: courseFilter.take,
+      //   where: {
+      //     attendees: {
+      //       some: {
+      //         userId: userId,
+      //       },
+      //     },
+      //   },
+      // });
     } else {
-      result = await this._prismaService.course.findMany({
-        skip: courseFilter.skip,
-        take: courseFilter.take,
+      // result = await this._prismaService.course.findMany({
+      //   skip: courseFilter.skip,
+      //   take: courseFilter.take,
+      // });
+      result = await this._prismaService.userCourse.findMany({
+        ...courseFilter,
       });
     }
 
