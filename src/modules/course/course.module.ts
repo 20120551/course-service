@@ -6,7 +6,9 @@ import {
   CourseInvitationController,
 } from './controllers';
 import {
+  AttendeeService,
   CourseService,
+  IAttendeeService,
   ICourseService,
   IInvitationService,
   InvitationService,
@@ -59,6 +61,10 @@ import { FirebaseModule, FirebaseModuleOptions } from 'utils/firebase';
     {
       provide: IInvitationService,
       useClass: InvitationService,
+    },
+    {
+      provide: IAttendeeService,
+      useClass: AttendeeService,
     },
   ],
 })

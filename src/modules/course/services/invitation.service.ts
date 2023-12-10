@@ -13,6 +13,7 @@ import { Invitation, PrismaClient } from 'utils/prisma/client';
 import { ISendgridService } from 'utils/sendgrid';
 import { ICryptoJSService } from 'utils/hash/cryptojs';
 import * as invitationTemplate from 'templates/invitation.html';
+import { UserResponse } from 'guards';
 
 export const IInvitationService = 'IInvitationService';
 export interface IInvitationService {
@@ -22,7 +23,7 @@ export interface IInvitationService {
   ): Promise<Invitation[]>;
   getInvitation(courseId: string, invitationId: string): Promise<Invitation>;
   createInvitations(
-    userId: string,
+    user: UserResponse,
     courseId: string,
     createInvitationsDto: CreateInvitationDto[],
   ): Promise<BatchResponse>;
@@ -72,11 +73,15 @@ export class InvitationService implements IInvitationService {
       },
     });
 
+    if (!result) {
+      throw new BadRequestException('not found invitation');
+    }
+
     return result;
   }
 
   async createInvitations(
-    userId: string,
+    user: UserResponse,
     courseId: string,
     createInvitationsDto: CreateInvitationDto[],
   ): Promise<BatchResponse> {
@@ -104,7 +109,7 @@ export class InvitationService implements IInvitationService {
     const result = await this._prismaService.invitation.createMany({
       data: filteredInvitations.map((data) => ({
         ...data,
-        invitedBy: userId,
+        invitedBy: user.userId,
         courseId,
       })),
     });
@@ -124,7 +129,7 @@ export class InvitationService implements IInvitationService {
 
       await this._sendgirdService.send({
         to: invitation.email,
-        subject: `Invitation to course`,
+        subject: `Invitation to course by ${user.name}`,
         from: '20120551@student.hcmus.edu.vn', // Fill it with your validated email on SendGrid account
         text: 'Hello',
         html: formatHtml,

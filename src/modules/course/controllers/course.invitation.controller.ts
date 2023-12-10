@@ -70,7 +70,7 @@ export class CourseInvitationController {
     @User() user: UserResponse,
   ) {
     return this._invitationService.createInvitations(
-      user.userId,
+      user,
       courseId,
       createInvitationsDto,
     );

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from 'utils/prisma';
 import {
   UpsertCourseDto,
@@ -120,6 +120,10 @@ export class CourseService implements ICourseService {
           attendees: true,
         },
       });
+    }
+
+    if (!result) {
+      throw new BadRequestException('not found course');
     }
 
     return result;
