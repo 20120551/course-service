@@ -51,13 +51,13 @@ export class CourseController {
     @Query() courseFilterDto: GetCourseFilterDto,
     @User() user: UserResponse,
   ) {
-    return this._courseService.getCourses(courseFilterDto, user.userId);
+    return this._courseService.getCourses(courseFilterDto, user);
   }
 
   @HttpCode(HttpStatus.OK)
   @Get(':id')
   getCourse(@Param('id') id: string, @User() user: UserResponse) {
-    return this._courseService.getCourse(id, user.userId);
+    return this._courseService.getCourse(id, user);
   }
 
   @HttpCode(HttpStatus.CREATED)

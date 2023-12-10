@@ -20,11 +20,11 @@ export interface ICourseService {
   getCourses(courseFilter: GetCourseFilterDto): Promise<CourseResponse[]>;
   getCourses(
     courseFilter: GetCourseFilterDto,
-    userId: string,
+    user: UserResponse,
   ): Promise<CourseResponse[]>;
 
   getCourse(courseId: string): Promise<CourseResponse>;
-  getCourse(courseId: string, userId: string): Promise<CourseResponse>;
+  getCourse(courseId: string, user: UserResponse): Promise<CourseResponse>;
 
   createCourse(
     course: UpsertCourseDto,
@@ -82,20 +82,20 @@ export class CourseService implements ICourseService {
   getCourses(courseFilter: GetCourseFilterDto): Promise<CourseResponse[]>;
   getCourses(
     courseFilter: GetCourseFilterDto,
-    userId: string,
+    user: UserResponse,
   ): Promise<CourseResponse[]>;
   async getCourses(
     courseFilter: GetCourseFilterDto,
-    userId?: string,
+    user?: UserResponse,
   ): Promise<CourseResponse[]> {
     let result = [];
-    if (userId) {
+    if (user) {
       result = await this._prismaService.course.findMany({
         ...courseFilter,
         where: {
           attendees: {
             some: {
-              userId,
+              userId: user.userId,
             },
           },
         },
@@ -107,7 +107,7 @@ export class CourseService implements ICourseService {
                   role: UserCourseRole.HOST,
                 },
                 {
-                  userId,
+                  userId: user.userId,
                 },
               ],
             },
@@ -149,7 +149,7 @@ export class CourseService implements ICourseService {
           return {
             ...payload,
             host: { ...host[0], ...res.data },
-            profile: { ...attendee[0] },
+            profile: { ...attendee[0], ...(user || {}) },
           };
         },
         {
@@ -162,16 +162,19 @@ export class CourseService implements ICourseService {
   }
 
   getCourse(courseId: string): Promise<CourseResponse>;
-  getCourse(courseId: string, userId: string): Promise<CourseResponse>;
-  async getCourse(courseId: string, userId?: string): Promise<CourseResponse> {
+  getCourse(courseId: string, user: UserResponse): Promise<CourseResponse>;
+  async getCourse(
+    courseId: string,
+    user?: UserResponse,
+  ): Promise<CourseResponse> {
     let result = null;
-    if (userId) {
+    if (user) {
       result = await this._prismaService.course.findUnique({
         where: {
           id: courseId,
           attendees: {
             some: {
-              userId: userId,
+              userId: user.userId,
             },
           },
         },
@@ -196,7 +199,7 @@ export class CourseService implements ICourseService {
     const { attendees, ...payload } = result;
     return {
       ...payload,
-      host: attendees[0],
+      host: { ...attendees[0], ...(user || {}) },
     };
   }
 
@@ -224,7 +227,7 @@ export class CourseService implements ICourseService {
     const { attendees, ...payload } = result;
     return {
       ...payload,
-      host: attendees[0],
+      host: { ...attendees[0], ...user },
     };
   }
 
