@@ -20,6 +20,8 @@ export interface IAttendeeService {
     switchAttendeeRoleDto: SwitchAttendeeRoleDto,
   ): Promise<void>;
 
+  leaveCourse(courseId: string, user: UserResponse): Promise<void>;
+
   addAttendeeToCourseByCode(
     user: UserResponse,
     createAttendeeByCodeDto: CreateAttendeeByCodeDto,
@@ -172,5 +174,37 @@ export class AttendeeService implements IAttendeeService {
         },
       },
     });
+  }
+
+  async leaveCourse(courseId: string, user: UserResponse): Promise<void> {
+    const attendee = await this._prismaService.userCourse.findUnique({
+      where: {
+        userId_courseId: {
+          userId: user.userId,
+          courseId,
+        },
+      },
+    });
+
+    if (!attendee) {
+      throw new BadRequestException(`not found user ${user.name} in course`);
+    }
+
+    if (attendee.role === UserCourseRole.HOST) {
+      await this._prismaService.course.delete({
+        where: {
+          id: courseId,
+        },
+      });
+    } else {
+      await this._prismaService.userCourse.delete({
+        where: {
+          userId_courseId: {
+            userId: user.userId,
+            courseId,
+          },
+        },
+      });
+    }
   }
 }

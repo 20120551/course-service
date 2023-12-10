@@ -104,7 +104,7 @@ export class CourseController {
   }
 
   @UseCoursePolicies({ roles: [UserCourseRole.HOST] })
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Put(':id/role')
   switchAttendee(
     @Param('id') courseId: string,
@@ -116,5 +116,11 @@ export class CourseController {
       user,
       switchAttendeeDto,
     );
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id/leave')
+  leaveCourse(@Param('id') courseId: string, @User() user: UserResponse) {
+    return this._attendeeService.leaveCourse(courseId, user);
   }
 }

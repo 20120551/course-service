@@ -13,6 +13,7 @@ import { Auth0ModuleOptions, IAuth0Service } from 'utils/auth0';
 import axios, { AxiosInstance } from 'axios';
 import { isEmpty, partition } from 'lodash';
 import { CourseResponse } from '../resources/response';
+import { InvitationState } from 'utils/prisma/client';
 
 export const ICourseService = 'ICourseService';
 
@@ -180,6 +181,7 @@ export class CourseService implements ICourseService {
         },
         include: {
           attendees: true,
+          invitations: true,
         },
       });
     } else {
@@ -189,6 +191,7 @@ export class CourseService implements ICourseService {
         },
         include: {
           attendees: true,
+          invitations: true,
         },
       });
     }
@@ -196,10 +199,21 @@ export class CourseService implements ICourseService {
     if (!result) {
       throw new BadRequestException('not found course');
     }
-    const { attendees, ...payload } = result;
+
+    const { attendees, invitations, ...payload } = result;
+    const [host, _attendees] = partition(
+      attendees,
+      (attendee) => attendee.role === UserCourseRole.HOST,
+    );
+
+    const notAlreadyAcceptedInvitations = invitations.filter(
+      (invitation) => invitation.state !== InvitationState.ACCEPTED,
+    );
     return {
       ...payload,
-      host: { ...attendees[0], ...(user || {}) },
+      attendees: _attendees,
+      invitations: notAlreadyAcceptedInvitations,
+      host: { ...host[0], ...(user || {}) },
     };
   }
 
