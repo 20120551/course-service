@@ -5,20 +5,22 @@ import {
   GetCourseFilterDto,
   UploadFileDto,
 } from '../resources/dto';
+import BPromise from 'bluebird';
 import { Course, UserCourse, UserCourseRole } from 'utils/prisma/client';
 import { IFirebaseStorageService } from 'utils/firebase';
 import { UserResponse } from 'guards';
+import { Auth0ModuleOptions, IAuth0Service } from 'utils/auth0';
+import axios, { AxiosInstance } from 'axios';
+import { isEmpty } from 'lodash';
 
 export const ICourseService = 'ICourseService';
 
 export interface ICourseService {
-  getCourses(
-    courseFilter: GetCourseFilterDto,
-  ): Promise<UserCourse[] | Course[]>;
+  getCourses(courseFilter: GetCourseFilterDto): Promise<Course[]>;
   getCourses(
     courseFilter: GetCourseFilterDto,
     userId: string,
-  ): Promise<UserCourse[] | Course[]>;
+  ): Promise<Course[]>;
 
   getCourse(courseId: string): Promise<Course>;
   getCourse(courseId: string, userId: string): Promise<Course>;
@@ -35,11 +37,19 @@ export interface ICourseService {
 
 @Injectable()
 export class CourseService implements ICourseService {
+  private readonly _auth0Client: AxiosInstance;
   constructor(
     private readonly _prismaService: PrismaService,
     @Inject(IFirebaseStorageService)
     private readonly _firebaseStorageService: IFirebaseStorageService,
-  ) {}
+    @Inject(Auth0ModuleOptions) _auth0Options: Auth0ModuleOptions,
+    @Inject(IAuth0Service)
+    private readonly _auth0Service: IAuth0Service,
+  ) {
+    this._auth0Client = axios.create({
+      baseURL: _auth0Options.baseUrl,
+    });
+  }
 
   async uploadCourseBackground(
     courseId: string,
@@ -62,32 +72,30 @@ export class CourseService implements ICourseService {
     return result;
   }
 
-  getCourses(
-    courseFilter: GetCourseFilterDto,
-  ): Promise<UserCourse[] | Course[]>;
+  getCourses(courseFilter: GetCourseFilterDto): Promise<Course[]>;
   getCourses(
     courseFilter: GetCourseFilterDto,
     userId: string,
-  ): Promise<UserCourse[] | Course[]>;
+  ): Promise<Course[]>;
   async getCourses(
     courseFilter: GetCourseFilterDto,
     userId?: string,
-  ): Promise<UserCourse[] | Course[]> {
-    let result: UserCourse[] | Course[] = [];
+  ): Promise<Course[]> {
+    let result = [];
     if (userId) {
-      result = await this._prismaService.userCourse.findMany({
+      result = await this._prismaService.course.findMany({
         ...courseFilter,
         where: {
-          userId: userId,
+          attendees: {
+            some: {
+              userId,
+            },
+          },
         },
         include: {
-          course: {
-            include: {
-              attendees: {
-                where: {
-                  role: UserCourseRole.HOST,
-                },
-              },
+          attendees: {
+            where: {
+              role: UserCourseRole.HOST,
             },
           },
         },
@@ -97,6 +105,33 @@ export class CourseService implements ICourseService {
         skip: courseFilter.skip,
         take: courseFilter.take,
       });
+    }
+
+    if (!isEmpty(result)) {
+      const token = await this._getToken();
+
+      result = await BPromise.map(
+        result,
+        async (course) => {
+          const { attendees, ...payload } = course;
+          const res = await this._auth0Client.get(
+            `/api/v2/users/${attendees[0].userId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+
+          return {
+            ...payload,
+            attendees: { ...attendees[0], ...res.data },
+          };
+        },
+        {
+          concurrency: 10,
+        },
+      );
     }
 
     return result;
@@ -182,5 +217,10 @@ export class CourseService implements ICourseService {
     });
 
     return result;
+  }
+
+  private async _getToken() {
+    const { access_token } = await this._auth0Service.signToken();
+    return access_token;
   }
 }
