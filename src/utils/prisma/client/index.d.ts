@@ -4164,17 +4164,17 @@ export namespace Prisma {
 
   export type CourseWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    code?: string
     AND?: CourseWhereInput | CourseWhereInput[]
     OR?: CourseWhereInput[]
     NOT?: CourseWhereInput | CourseWhereInput[]
     name?: StringFilter<"Course"> | string
     desc?: StringNullableFilter<"Course"> | string | null
+    code?: StringFilter<"Course"> | string
     background?: StringNullableFilter<"Course"> | string | null
     createdAt?: DateTimeFilter<"Course"> | Date | string
     invitations?: InvitationListRelationFilter
     attendees?: UserCourseListRelationFilter
-  }, "id" | "code">
+  }, "id">
 
   export type CourseOrderByWithAggregationInput = {
     id?: SortOrder

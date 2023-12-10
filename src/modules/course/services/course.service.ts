@@ -14,6 +14,7 @@ import axios, { AxiosInstance } from 'axios';
 import { isEmpty, partition } from 'lodash';
 import { CourseResponse } from '../resources/response';
 import { InvitationState } from 'utils/prisma/client';
+import crypto from 'crypto';
 
 export const ICourseService = 'ICourseService';
 
@@ -242,21 +243,47 @@ export class CourseService implements ICourseService {
     user: UserResponse,
   ): Promise<CourseResponse> {
     let result = null;
-    result = await this._prismaService.course.create({
-      data: {
-        ...course,
-        attendees: {
-          create: {
-            userId: user.userId,
-            email: user.email,
-            role: UserCourseRole.HOST,
+    let attempt = 0;
+    do {
+      ++attempt;
+      console.log(`current attempt ${attempt}`);
+      const _course = await this._prismaService.course.findFirst({
+        where: {
+          code: course.code,
+        },
+      });
+
+      if (_course) {
+        course.code = crypto.randomBytes(4).toString('hex').toUpperCase();
+        continue;
+      }
+
+      result = await this._prismaService.course.create({
+        data: {
+          code: course.code,
+          name: course.name,
+          desc: course.desc,
+          attendees: {
+            create: {
+              userId: user.userId,
+              email: user.email,
+              role: UserCourseRole.HOST,
+            },
           },
         },
-      },
-      include: {
-        attendees: true,
-      },
-    });
+        include: {
+          attendees: true,
+        },
+      });
+
+      break;
+    } while (attempt < 10);
+
+    if (result === null) {
+      throw new BadRequestException(
+        'cannot create course because of duplicate code',
+      );
+    }
 
     const { attendees, ...payload } = result;
     return {

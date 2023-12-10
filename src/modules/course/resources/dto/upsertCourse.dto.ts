@@ -1,5 +1,5 @@
 import { IsOptional, IsString } from 'class-validator';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { defaultValue } from 'utils/decorator/parameters';
 
 export class UpsertCourseDto {
@@ -9,6 +9,6 @@ export class UpsertCourseDto {
   name: string;
   @IsString()
   desc: string;
-  @defaultValue(uuidv4().split('-')[0].toUpperCase())
+  @defaultValue(crypto.randomBytes(4).toString('hex').toUpperCase())
   code: string;
 }

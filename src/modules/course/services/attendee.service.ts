@@ -11,6 +11,8 @@ import { InvitationState } from 'utils/prisma/client';
 import { PrismaClient } from 'utils/prisma/client';
 import { UserResponse } from 'guards';
 import { CourseResponse } from '../resources/response';
+import { Auth0ModuleOptions, IAuth0Service } from 'utils/auth0';
+import axios, { AxiosInstance } from 'axios';
 
 export const IAttendeeService = 'IAttendeeService';
 
@@ -36,12 +38,20 @@ export interface IAttendeeService {
 
 @Injectable()
 export class AttendeeService implements IAttendeeService {
+  private readonly _auth0Client: AxiosInstance;
   constructor(
     private readonly _prisma: PrismaClient,
     private readonly _prismaService: PrismaService,
     @Inject(ICryptoJSService)
     private readonly _cryptoJSService: ICryptoJSService,
-  ) {}
+    @Inject(Auth0ModuleOptions) _auth0Options: Auth0ModuleOptions,
+    @Inject(IAuth0Service)
+    private readonly _auth0Service: IAuth0Service,
+  ) {
+    this._auth0Client = axios.create({
+      baseURL: _auth0Options.baseUrl,
+    });
+  }
 
   async switchAttendeeRole(
     courseId: string,
@@ -115,9 +125,19 @@ export class AttendeeService implements IAttendeeService {
     user: UserResponse,
     createAttendeeByCodeDto: CreateAttendeeByCodeDto,
   ): Promise<CourseResponse> {
-    const result = await this._prismaService.course.update({
+    const course = await this._prismaService.course.findFirst({
       where: {
         code: createAttendeeByCodeDto.code,
+      },
+    });
+
+    if (!course) {
+      throw new BadRequestException('not found course with code');
+    }
+
+    const result = await this._prismaService.course.update({
+      where: {
+        id: course.id,
       },
       data: {
         attendees: {
@@ -128,9 +148,43 @@ export class AttendeeService implements IAttendeeService {
           },
         },
       },
+      include: {
+        attendees: {
+          where: {
+            role: UserCourseRole.HOST,
+          },
+        },
+      },
     });
 
-    return result;
+    if (!result) {
+      throw new BadRequestException(
+        `not found course with code ${createAttendeeByCodeDto.code}`,
+      );
+    }
+
+    const { attendees, ...payload } = result;
+
+    const token = await this._getToken();
+    const res = await this._auth0Client.get(
+      `/api/v2/users/${attendees[0].userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    return {
+      ...payload,
+      host: {
+        ...attendees[0],
+        ...res.data,
+      },
+      profile: {
+        ...user,
+      },
+    };
   }
 
   async addAttendeeToCourseByToken(
@@ -175,9 +229,37 @@ export class AttendeeService implements IAttendeeService {
           },
         },
       },
+      include: {
+        attendees: {
+          where: {
+            role: UserCourseRole.HOST,
+          },
+        },
+      },
     });
 
-    return result;
+    const { attendees, ...payload } = result;
+
+    const token = await this._getToken();
+    const res = await this._auth0Client.get(
+      `/api/v2/users/${attendees[0].userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    return {
+      ...payload,
+      host: {
+        ...attendees[0],
+        ...res.data,
+      },
+      profile: {
+        ...user,
+      },
+    };
   }
 
   async leaveCourse(courseId: string, user: UserResponse): Promise<void> {
@@ -210,5 +292,10 @@ export class AttendeeService implements IAttendeeService {
         },
       });
     }
+  }
+
+  private async _getToken() {
+    const { access_token } = await this._auth0Service.signToken();
+    return access_token;
   }
 }
