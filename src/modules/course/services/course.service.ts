@@ -6,33 +6,40 @@ import {
   UploadFileDto,
 } from '../resources/dto';
 import BPromise from 'bluebird';
-import { Course, UserCourse, UserCourseRole } from 'utils/prisma/client';
+import { Course, UserCourseRole } from 'utils/prisma/client';
 import { IFirebaseStorageService } from 'utils/firebase';
 import { UserResponse } from 'guards';
 import { Auth0ModuleOptions, IAuth0Service } from 'utils/auth0';
 import axios, { AxiosInstance } from 'axios';
-import { isEmpty } from 'lodash';
+import { isEmpty, partition } from 'lodash';
+import { CourseResponse } from '../resources/response';
 
 export const ICourseService = 'ICourseService';
 
 export interface ICourseService {
-  getCourses(courseFilter: GetCourseFilterDto): Promise<Course[]>;
+  getCourses(courseFilter: GetCourseFilterDto): Promise<CourseResponse[]>;
   getCourses(
     courseFilter: GetCourseFilterDto,
     userId: string,
-  ): Promise<Course[]>;
+  ): Promise<CourseResponse[]>;
 
-  getCourse(courseId: string): Promise<Course>;
-  getCourse(courseId: string, userId: string): Promise<Course>;
+  getCourse(courseId: string): Promise<CourseResponse>;
+  getCourse(courseId: string, userId: string): Promise<CourseResponse>;
 
-  createCourse(course: UpsertCourseDto, user: UserResponse): Promise<Course>;
-  updateCourse(courseId: string, course: UpsertCourseDto): Promise<Course>;
-  deleteCourse(courseId: string): Promise<Course>;
+  createCourse(
+    course: UpsertCourseDto,
+    user: UserResponse,
+  ): Promise<CourseResponse>;
+  updateCourse(
+    courseId: string,
+    course: UpsertCourseDto,
+  ): Promise<CourseResponse>;
+  deleteCourse(courseId: string): Promise<CourseResponse>;
 
   uploadCourseBackground(
     courseId: string,
     uploadFileDto: UploadFileDto,
-  ): Promise<Course>;
+  ): Promise<CourseResponse>;
 }
 
 @Injectable()
@@ -54,7 +61,7 @@ export class CourseService implements ICourseService {
   async uploadCourseBackground(
     courseId: string,
     uploadFileDto: UploadFileDto,
-  ): Promise<Course> {
+  ): Promise<CourseResponse> {
     const { buffer, filename } = uploadFileDto;
     const cardBucket = `background/${filename}`;
     await this._firebaseStorageService.upload(buffer, cardBucket);
@@ -72,15 +79,15 @@ export class CourseService implements ICourseService {
     return result;
   }
 
-  getCourses(courseFilter: GetCourseFilterDto): Promise<Course[]>;
+  getCourses(courseFilter: GetCourseFilterDto): Promise<CourseResponse[]>;
   getCourses(
     courseFilter: GetCourseFilterDto,
     userId: string,
-  ): Promise<Course[]>;
+  ): Promise<CourseResponse[]>;
   async getCourses(
     courseFilter: GetCourseFilterDto,
     userId?: string,
-  ): Promise<Course[]> {
+  ): Promise<CourseResponse[]> {
     let result = [];
     if (userId) {
       result = await this._prismaService.course.findMany({
@@ -95,7 +102,14 @@ export class CourseService implements ICourseService {
         include: {
           attendees: {
             where: {
-              role: UserCourseRole.HOST,
+              OR: [
+                {
+                  role: UserCourseRole.HOST,
+                },
+                {
+                  userId,
+                },
+              ],
             },
           },
         },
@@ -114,8 +128,17 @@ export class CourseService implements ICourseService {
         result,
         async (course) => {
           const { attendees, ...payload } = course;
+          let [host, attendee] = partition(
+            attendees,
+            (attendee) => attendee.role === UserCourseRole.HOST,
+          );
+
+          if (isEmpty(attendee)) {
+            attendee = host;
+          }
+
           const res = await this._auth0Client.get(
-            `/api/v2/users/${attendees[0].userId}`,
+            `/api/v2/users/${host[0].userId}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -125,7 +148,8 @@ export class CourseService implements ICourseService {
 
           return {
             ...payload,
-            attendees: { ...attendees[0], ...res.data },
+            host: { ...host[0], ...res.data },
+            profile: { ...attendee[0] },
           };
         },
         {
@@ -137,10 +161,10 @@ export class CourseService implements ICourseService {
     return result;
   }
 
-  getCourse(courseId: string): Promise<Course>;
-  getCourse(courseId: string, userId: string): Promise<Course>;
-  async getCourse(courseId: string, userId?: string): Promise<Course> {
-    let result: Course = null;
+  getCourse(courseId: string): Promise<CourseResponse>;
+  getCourse(courseId: string, userId: string): Promise<CourseResponse>;
+  async getCourse(courseId: string, userId?: string): Promise<CourseResponse> {
+    let result = null;
     if (userId) {
       result = await this._prismaService.course.findUnique({
         where: {
@@ -169,15 +193,19 @@ export class CourseService implements ICourseService {
     if (!result) {
       throw new BadRequestException('not found course');
     }
-
-    return result;
+    const { attendees, ...payload } = result;
+    return {
+      ...payload,
+      host: attendees[0],
+    };
   }
 
   async createCourse(
     course: UpsertCourseDto,
     user: UserResponse,
-  ): Promise<Course> {
-    const result = await this._prismaService.course.create({
+  ): Promise<CourseResponse> {
+    let result = null;
+    result = await this._prismaService.course.create({
       data: {
         ...course,
         attendees: {
@@ -188,15 +216,22 @@ export class CourseService implements ICourseService {
           },
         },
       },
+      include: {
+        attendees: true,
+      },
     });
 
-    return result;
+    const { attendees, ...payload } = result;
+    return {
+      ...payload,
+      host: attendees[0],
+    };
   }
 
   async updateCourse(
     courseId: string,
     course: UpsertCourseDto,
-  ): Promise<Course> {
+  ): Promise<CourseResponse> {
     const result = await this._prismaService.course.update({
       where: {
         id: courseId,
@@ -209,7 +244,7 @@ export class CourseService implements ICourseService {
     return result;
   }
 
-  async deleteCourse(courseId: string): Promise<Course> {
+  async deleteCourse(courseId: string): Promise<CourseResponse> {
     const result = await this._prismaService.course.delete({
       where: {
         id: courseId,
