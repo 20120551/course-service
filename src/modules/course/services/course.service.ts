@@ -5,16 +5,14 @@ import {
   GetCourseFilterDto,
   UploadFileDto,
 } from '../resources/dto';
-import BPromise from 'bluebird';
-import { Course, UserCourseRole } from 'utils/prisma/client';
+import { PrismaClient, UserCourseRole } from 'utils/prisma/client';
 import { IFirebaseStorageService } from 'utils/firebase';
 import { UserResponse } from 'guards';
-import { Auth0ModuleOptions, IAuth0Service } from 'utils/auth0';
-import axios, { AxiosInstance } from 'axios';
 import { isEmpty, partition } from 'lodash';
 import { CourseResponse } from '../resources/response';
 import { InvitationState } from 'utils/prisma/client';
 import crypto from 'crypto';
+import { IUserService } from './user.service';
 
 export const ICourseService = 'ICourseService';
 
@@ -46,19 +44,14 @@ export interface ICourseService {
 
 @Injectable()
 export class CourseService implements ICourseService {
-  private readonly _auth0Client: AxiosInstance;
   constructor(
+    private readonly _prisma: PrismaClient,
     private readonly _prismaService: PrismaService,
     @Inject(IFirebaseStorageService)
     private readonly _firebaseStorageService: IFirebaseStorageService,
-    @Inject(Auth0ModuleOptions) _auth0Options: Auth0ModuleOptions,
-    @Inject(IAuth0Service)
-    private readonly _auth0Service: IAuth0Service,
-  ) {
-    this._auth0Client = axios.create({
-      baseURL: _auth0Options.baseUrl,
-    });
-  }
+    @Inject(IUserService)
+    private readonly _userService: IUserService,
+  ) {}
 
   async uploadCourseBackground(
     courseId: string,
@@ -113,6 +106,9 @@ export class CourseService implements ICourseService {
                 },
               ],
             },
+            include: {
+              user: true,
+            },
           },
         },
       });
@@ -124,40 +120,26 @@ export class CourseService implements ICourseService {
     }
 
     if (!isEmpty(result)) {
-      const token = await this._getToken();
+      result = result.map((course) => {
+        const { attendees, ...payload } = course;
+        let [host, attendee] = partition(
+          attendees,
+          (attendee) => attendee.role === UserCourseRole.HOST,
+        );
 
-      result = await BPromise.map(
-        result,
-        async (course) => {
-          const { attendees, ...payload } = course;
-          let [host, attendee] = partition(
-            attendees,
-            (attendee) => attendee.role === UserCourseRole.HOST,
-          );
+        if (isEmpty(attendee)) {
+          attendee = host;
+        }
 
-          if (isEmpty(attendee)) {
-            attendee = host;
-          }
+        const { user: attendeeUser, ...attendeePayload } = attendee[0];
+        const { user: hostUser, ...hostPayload } = host[0];
 
-          const res = await this._auth0Client.get(
-            `/api/v2/users/${host[0].userId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
-
-          return {
-            ...payload,
-            host: { ...host[0], ...res.data },
-            profile: { ...attendee[0], ...(user || {}) },
-          };
-        },
-        {
-          concurrency: 10,
-        },
-      );
+        return {
+          ...payload,
+          host: { ...hostUser, ...hostPayload },
+          profile: { ...attendeeUser, ...attendeePayload },
+        };
+      });
     }
 
     return result;
@@ -181,7 +163,11 @@ export class CourseService implements ICourseService {
           },
         },
         include: {
-          attendees: true,
+          attendees: {
+            include: {
+              user: true,
+            },
+          },
           invitations: true,
         },
       });
@@ -191,7 +177,11 @@ export class CourseService implements ICourseService {
           id: courseId,
         },
         include: {
-          attendees: true,
+          attendees: {
+            include: {
+              user: true,
+            },
+          },
           invitations: true,
         },
       });
@@ -211,37 +201,20 @@ export class CourseService implements ICourseService {
       (invitation) => invitation.state !== InvitationState.ACCEPTED,
     );
 
-    const token = await this._getToken();
-    const responseAttendees = await BPromise.map(
-      _attendees,
-      async (attendee) => {
-        const res = await this._auth0Client.get(
-          `/api/v2/users/${attendee.userId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        return { ...attendee, ...res.data };
-      },
-      {
-        concurrency: 10,
-      },
-    );
-
-    const res = await this._auth0Client.get(`/api/v2/users/${host[0].userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const responseAttendees = _attendees.map((attendee) => {
+      const { user, ...payload } = attendee;
+      return {
+        ...payload,
+        ...user,
+      };
     });
 
+    const { user: hostUser, ...hostPayload } = host[0];
     return {
       ...payload,
       attendees: responseAttendees,
       invitations: notAlreadyAcceptedInvitations,
-      host: { ...host[0], ...res.data },
+      host: { ...hostUser, ...hostPayload },
     };
   }
 
@@ -265,22 +238,26 @@ export class CourseService implements ICourseService {
         continue;
       }
 
-      result = await this._prismaService.course.create({
-        data: {
-          code: course.code,
-          name: course.name,
-          desc: course.desc,
-          attendees: {
-            create: {
-              userId: user.userId,
-              email: user.email,
-              role: UserCourseRole.HOST,
+      result = await this._prisma.$transaction(async (context) => {
+        await this._userService.createUser(user);
+        const result = await context.course.create({
+          data: {
+            code: course.code,
+            name: course.name,
+            desc: course.desc,
+            attendees: {
+              create: {
+                userId: user.userId,
+                role: UserCourseRole.HOST,
+              },
             },
           },
-        },
-        include: {
-          attendees: true,
-        },
+          include: {
+            attendees: true,
+          },
+        });
+
+        return result;
       });
     } while (attempt < 10 && result === null);
 
@@ -291,9 +268,11 @@ export class CourseService implements ICourseService {
     }
 
     const { attendees, ...payload } = result;
+    const { user: hostUser, ...hostPayload } = attendees[0];
+
     return {
       ...payload,
-      host: { ...attendees[0], ...user },
+      host: { ...hostPayload, ...hostUser },
     };
   }
 
@@ -321,10 +300,5 @@ export class CourseService implements ICourseService {
     });
 
     return result;
-  }
-
-  private async _getToken() {
-    const { access_token } = await this._auth0Service.signToken();
-    return access_token;
   }
 }

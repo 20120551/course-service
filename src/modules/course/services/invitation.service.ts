@@ -92,7 +92,11 @@ export class InvitationService implements IInvitationService {
       include: {
         attendees: {
           select: {
-            email: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
           },
         },
         invitations: {
@@ -106,7 +110,16 @@ export class InvitationService implements IInvitationService {
     // filter by invitation
     const filteredInvitations = differenceBy(
       createInvitationsDto,
-      [...course.attendees, ...course.invitations],
+      [
+        course.attendees.map((attendee) => {
+          const { user, ...payload } = attendee;
+          return {
+            ...user,
+            ...payload,
+          };
+        }),
+        ...course.invitations,
+      ],
       'email',
     );
 

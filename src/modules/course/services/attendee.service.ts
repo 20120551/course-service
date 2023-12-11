@@ -11,8 +11,7 @@ import { InvitationState } from 'utils/prisma/client';
 import { PrismaClient } from 'utils/prisma/client';
 import { UserResponse } from 'guards';
 import { CourseResponse } from '../resources/response';
-import { Auth0ModuleOptions, IAuth0Service } from 'utils/auth0';
-import axios, { AxiosInstance } from 'axios';
+import { IUserService } from './user.service';
 
 export const IAttendeeService = 'IAttendeeService';
 
@@ -38,20 +37,14 @@ export interface IAttendeeService {
 
 @Injectable()
 export class AttendeeService implements IAttendeeService {
-  private readonly _auth0Client: AxiosInstance;
   constructor(
     private readonly _prisma: PrismaClient,
     private readonly _prismaService: PrismaService,
     @Inject(ICryptoJSService)
     private readonly _cryptoJSService: ICryptoJSService,
-    @Inject(Auth0ModuleOptions) _auth0Options: Auth0ModuleOptions,
-    @Inject(IAuth0Service)
-    private readonly _auth0Service: IAuth0Service,
-  ) {
-    this._auth0Client = axios.create({
-      baseURL: _auth0Options.baseUrl,
-    });
-  }
+    @Inject(IUserService)
+    private readonly _userService: IUserService,
+  ) {}
 
   async switchAttendeeRole(
     courseId: string,
@@ -157,35 +150,42 @@ export class AttendeeService implements IAttendeeService {
       return res;
     }
 
-    const result = await this._prismaService.course.update({
-      where: {
-        id: course.id,
-      },
-      data: {
-        attendees: {
-          create: {
-            userId: user.userId,
-            email: user.email,
-            role: UserCourseRole.STUDENT,
+    const result = await this._prisma.$transaction(async (context) => {
+      await this._userService.createUser(user);
+
+      const result = await context.course.update({
+        where: {
+          id: course.id,
+        },
+        data: {
+          attendees: {
+            create: {
+              userId: user.userId,
+              role: UserCourseRole.STUDENT,
+            },
           },
         },
-      },
-      include: {
-        attendees: {
-          where: {
-            role: UserCourseRole.HOST,
+        include: {
+          attendees: {
+            where: {
+              role: UserCourseRole.HOST,
+            },
+            include: {
+              user: true,
+            },
           },
         },
-      },
+      });
+
+      if (!result) {
+        throw new BadRequestException(
+          `not found course with code ${createAttendeeByCodeDto.code}`,
+        );
+      }
+      return result;
     });
 
-    if (!result) {
-      throw new BadRequestException(
-        `not found course with code ${createAttendeeByCodeDto.code}`,
-      );
-    }
-
-    const res = await this._getCourseResponse(result, user);
+    const res = this._getCourseResponse(result, user);
     return res;
   }
 
@@ -193,12 +193,10 @@ export class AttendeeService implements IAttendeeService {
     user: UserResponse,
     createAttendeeByTokenDto: CreateAttendeeByTokenDto,
   ): Promise<CourseResponse> {
-    console.log(createAttendeeByTokenDto);
     const decrypt = this._cryptoJSService.decrypt<{
       id: string;
     }>(createAttendeeByTokenDto.token.replaceAll(' ', '+'));
 
-    console.log(decrypt);
     const invitation = await this._prismaService.invitation.findUnique({
       where: {
         id: decrypt.id,
@@ -209,61 +207,53 @@ export class AttendeeService implements IAttendeeService {
       throw new BadRequestException('not found invitation');
     }
 
-    const result = await this._prismaService.course.update({
-      where: {
-        id: invitation.courseId,
-      },
-      data: {
-        attendees: {
-          create: {
-            userId: user.userId,
-            email: user.email,
-            role: invitation.role,
-            invitationId: invitation.id,
+    const result = await this._prisma.$transaction(async (context) => {
+      await this._userService.createUser(user);
+      const result = await context.course.update({
+        where: {
+          id: invitation.courseId,
+        },
+        data: {
+          attendees: {
+            create: {
+              userId: user.userId,
+              role: invitation.role,
+              invitationId: invitation.id,
+            },
+          },
+          invitations: {
+            update: {
+              where: {
+                id: invitation.id,
+              },
+              data: {
+                state: InvitationState.ACCEPTED,
+              },
+            },
           },
         },
-        invitations: {
-          update: {
+        include: {
+          attendees: {
             where: {
-              id: invitation.id,
+              role: UserCourseRole.HOST,
             },
-            data: {
-              state: InvitationState.ACCEPTED,
+            include: {
+              user: true,
             },
           },
         },
-      },
-      include: {
-        attendees: {
-          where: {
-            role: UserCourseRole.HOST,
-          },
-        },
-      },
+      });
+
+      if (!result) {
+        throw new BadRequestException(
+          `not found course with token ${createAttendeeByTokenDto.token}`,
+        );
+      }
+      return result;
     });
 
-    const { attendees, ...payload } = result;
-
-    const token = await this._getToken();
-    const res = await this._auth0Client.get(
-      `/api/v2/users/${attendees[0].userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    return {
-      ...payload,
-      host: {
-        ...attendees[0],
-        ...res.data,
-      },
-      profile: {
-        ...user,
-      },
-    };
+    const res = this._getCourseResponse(result, user);
+    return res;
   }
 
   async leaveCourse(courseId: string, user: UserResponse): Promise<void> {
@@ -298,29 +288,14 @@ export class AttendeeService implements IAttendeeService {
     }
   }
 
-  private async _getToken() {
-    const { access_token } = await this._auth0Service.signToken();
-    return access_token;
-  }
-
-  private async _getCourseResponse(course: any, user: UserResponse) {
+  private _getCourseResponse(course: any, user: UserResponse) {
     const { attendees, ...payload } = course;
-
-    const token = await this._getToken();
-    const res = await this._auth0Client.get(
-      `/api/v2/users/${attendees[0].userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
 
     return {
       ...payload,
       host: {
         ...attendees[0],
-        ...res.data,
+        ...attendees[0].user,
       },
       profile: {
         ...user,

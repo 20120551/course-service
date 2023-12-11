@@ -11,7 +11,9 @@ import {
   IAttendeeService,
   ICourseService,
   IInvitationService,
+  IUserService,
   InvitationService,
+  UserService,
 } from './services';
 import { SendgridModule } from 'utils/sendgrid/sendgrid.module';
 import { ConfigService } from '@nestjs/config';
@@ -65,6 +67,10 @@ import { FirebaseModule, FirebaseModuleOptions } from 'utils/firebase';
     {
       provide: IAttendeeService,
       useClass: AttendeeService,
+    },
+    {
+      provide: IUserService,
+      useClass: UserService,
     },
   ],
 })

@@ -1,7 +1,16 @@
+import { CacheModule, CacheStore } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { auth0, cryptojs, firebase, sendgrid } from 'configurations/env.config';
+import { redisStore } from 'cache-manager-redis-store';
+import {
+  auth0,
+  cryptojs,
+  firebase,
+  redis,
+  sendgrid,
+} from 'configurations/env.config';
 import { CourseModule } from 'modules/course/course.module';
+import { RedisClientOptions } from 'redis';
 import { Auth0Module, Auth0ModuleOptions } from 'utils/auth0';
 import { PrismaModule } from 'utils/prisma';
 
@@ -9,13 +18,22 @@ import { PrismaModule } from 'utils/prisma';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [auth0, sendgrid, cryptojs, firebase],
+      load: [auth0, sendgrid, cryptojs, firebase, redis],
     }),
     Auth0Module.forRootAsync({
       global: true,
       useFactory: (configService: ConfigService) => {
         const auth0Options = configService.get<Auth0ModuleOptions>('auth0');
         return auth0Options;
+      },
+      inject: [ConfigService],
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async (configService: ConfigService) => {
+        const redisOptions = configService.get<RedisClientOptions>('redis');
+        const store = await redisStore(redisOptions);
+        return { store: store as unknown as CacheStore };
       },
       inject: [ConfigService],
     }),

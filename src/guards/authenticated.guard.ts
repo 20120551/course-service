@@ -9,10 +9,14 @@ import { UnauthorizedException } from 'utils/errors/domain.error';
 import { createCamelCaseFromObject } from 'utils/request';
 import { Request } from 'express';
 import { UserResponse } from 'guards';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class AuthenticatedGuard implements CanActivate {
   constructor(
+    @Inject(CACHE_MANAGER)
+    private readonly _cacheManager: Cache,
     @Inject(IAuth0Service) private readonly _auth0Service: IAuth0Service,
   ) {}
 
@@ -28,17 +32,22 @@ export class AuthenticatedGuard implements CanActivate {
       throw new UnauthorizedException('Token stype not supported');
     }
 
-    const userInfo = await this._auth0Service.verifyToken({
-      access_token: accessToken,
-    });
+    const userInfo = await this._cacheManager.get<UserResponse>(accessToken);
+    if (!userInfo) {
+      throw new UnauthorizedException('Invalid Token');
+    }
 
-    const camelCase = createCamelCaseFromObject<Auth0UserInfo, UserResponse>(
-      userInfo,
-    );
+    // const userInfo = await this._auth0Service.verifyToken({
+    //   access_token: accessToken,
+    // });
+
+    // const camelCase = createCamelCaseFromObject<Auth0UserInfo, UserResponse>(
+    //   userInfo,
+    // );
     request.user = {
-      ...camelCase,
-      userId: camelCase['sub'],
-      userMetadata: camelCase.appMetadata || {},
+      ...userInfo,
+      userId: userInfo['sub'],
+      userMetadata: userInfo.appMetadata || {},
     };
     return true;
   }

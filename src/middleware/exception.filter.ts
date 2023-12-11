@@ -14,6 +14,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
+    console.log(exception);
     if (exception instanceof AxiosError) {
       const status = exception.response.status;
       return response.status(status).json({
@@ -37,7 +38,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
         error: exception.message,
       });
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
-      console.log(exception);
       if (exception.code === 'P2002') {
         // Example: Unique constraint violation
         response.status(400).json({

@@ -18,6 +18,10 @@ export const firebase = registerAs('firebase', () => ({
   measurementId: env.FIREBASE_MEMSUREMENT_ID,
 }));
 
+export const redis = registerAs('redis', () => ({
+  url: env.REDIS_URL,
+}));
+
 export const sendgrid = registerAs('sendgrid', () => ({
   apiKey: env.SENDGRID_API_KEY,
 }));

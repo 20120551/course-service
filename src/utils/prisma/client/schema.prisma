@@ -9,6 +9,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id         String       @id @default(uuid())
+  name       String
+  email      String       @unique
+  picture    String
+  UserCourse UserCourse[]
+}
+
 model Course {
   id          String       @id @default(uuid())
   name        String
@@ -24,8 +32,8 @@ model Course {
 
 model UserCourse {
   userId       String         @map("user_id")
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   courseId     String         @map("course_id")
-  email        String?
   course       Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
   role         UserCourseRole
   invitationId String?        @unique @map("invitation_id")
@@ -37,15 +45,15 @@ model UserCourse {
 }
 
 model Invitation {
-  id        String          @id @default(uuid())
-  email     String
-  role      UserCourseRole
-  invitedBy String          @map("invited_by")
-  course    Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  courseId  String          @map("course_id")
-  state     InvitationState
-  attendee  UserCourse?
-  createdAt DateTime        @default(now()) @map("created_at")
+  id         String          @id @default(uuid())
+  email      String
+  role       UserCourseRole
+  invitedBy  String          @map("invited_by")
+  course     Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId   String          @map("course_id")
+  state      InvitationState
+  createdAt  DateTime        @default(now()) @map("created_at")
+  UserCourse UserCourse?
 
   @@map("invitation")
 }
