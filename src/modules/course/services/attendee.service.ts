@@ -193,10 +193,12 @@ export class AttendeeService implements IAttendeeService {
     user: UserResponse,
     createAttendeeByTokenDto: CreateAttendeeByTokenDto,
   ): Promise<CourseResponse> {
+    console.log(createAttendeeByTokenDto);
     const decrypt = this._cryptoJSService.decrypt<{
       id: string;
     }>(createAttendeeByTokenDto.token.replaceAll(' ', '+'));
 
+    console.log(decrypt);
     const invitation = await this._prismaService.invitation.findUnique({
       where: {
         id: decrypt.id,

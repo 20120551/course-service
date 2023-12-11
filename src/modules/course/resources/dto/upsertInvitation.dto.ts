@@ -1,4 +1,5 @@
 import { IsEmail, IsString } from 'class-validator';
+import { v4 as uuidv4 } from 'uuid';
 import { defaultValue } from 'utils/decorator/parameters';
 import { InvitationState } from 'utils/prisma/client';
 import { UserCourseRole } from 'utils/prisma/client';
