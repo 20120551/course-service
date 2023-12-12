@@ -33,6 +33,10 @@ export function defaultValue<T>(value: T, options?: DefaultValueOptions) {
             return false;
           }
 
+          if (typeof value === 'function') {
+            value = value();
+          }
+
           let assignValue = value;
           if (options?.fromEnv) {
             assignValue = env[assignValue as string] as T;

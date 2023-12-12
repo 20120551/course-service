@@ -10,7 +10,7 @@ export class BatchInvitationDto {
 }
 
 export class CreateInvitationDto extends BatchInvitationDto {
-  @defaultValue(uuidv4())
+  @defaultValue(uuidv4)
   id: string;
   @defaultValue(InvitationState.PROCESSING)
   state: InvitationState;
