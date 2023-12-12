@@ -9,6 +9,7 @@ type DefaultValueOptions = {
 };
 
 export function defaultValue<T>(value: T, options?: DefaultValueOptions) {
+  console.log(typeof value);
   return function (object: Object, propertyName: string) {
     registerDecorator({
       name: 'defaultValue',
@@ -16,6 +17,7 @@ export function defaultValue<T>(value: T, options?: DefaultValueOptions) {
       propertyName: propertyName,
       validator: {
         validate(_value: any, args: ValidationArguments) {
+          let cacheValue = value;
           if (_value) {
             return true;
           }
@@ -34,10 +36,10 @@ export function defaultValue<T>(value: T, options?: DefaultValueOptions) {
           }
 
           if (typeof value === 'function') {
-            value = value();
+            cacheValue = value();
           }
 
-          let assignValue = value;
+          let assignValue = cacheValue;
           if (options?.fromEnv) {
             assignValue = env[assignValue as string] as T;
           }

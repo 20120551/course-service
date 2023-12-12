@@ -9,6 +9,6 @@ export class UpsertCourseDto {
   name: string;
   @IsString()
   desc: string;
-  @defaultValue(crypto.randomBytes(4).toString('hex').toUpperCase())
+  @defaultValue(() => crypto.randomBytes(4).toString('hex').toUpperCase())
   code: string;
 }
