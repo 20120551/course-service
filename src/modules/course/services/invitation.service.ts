@@ -9,11 +9,11 @@ import {
 import { differenceBy, intersectionBy, isEmpty } from 'lodash';
 import BPromise from 'bluebird';
 import { BatchResponse } from '../resources/response';
-import { Invitation, PrismaClient } from 'utils/prisma/client';
 import { ISendgridService } from 'utils/sendgrid';
 import { ICryptoJSService } from 'utils/hash/cryptojs';
 import * as invitationTemplate from 'templates/invitation.html';
 import { UserResponse } from 'guards';
+import { Invitation, PrismaClient } from '@prisma/client';
 
 export const IInvitationService = 'IInvitationService';
 export interface IInvitationService {

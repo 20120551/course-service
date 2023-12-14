@@ -5,14 +5,13 @@ import {
   GetCourseFilterDto,
   UploadFileDto,
 } from '../resources/dto';
-import { PrismaClient, UserCourseRole } from 'utils/prisma/client';
 import { IFirebaseStorageService } from 'utils/firebase';
 import { UserResponse } from 'guards';
 import { isEmpty, partition } from 'lodash';
 import { CourseResponse } from '../resources/response';
-import { InvitationState } from 'utils/prisma/client';
 import crypto from 'crypto';
 import { IUserService } from './user.service';
+import { InvitationState, PrismaClient, UserCourseRole } from '@prisma/client';
 
 export const ICourseService = 'ICourseService';
 

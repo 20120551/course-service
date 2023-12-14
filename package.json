@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "webpack --config webpack.nest.config.js",
+    "build": "npm run pre:build && webpack --config webpack.nest.config.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start --webpack --webpackPath webpack.nest.config.js",
     "start:dev": "nest start --webpack --webpackPath webpack.nest.config.js --watch",
@@ -19,7 +19,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "dev": "sls offline -s prod --useInProcess --noTimeout --reloadHandler",
-    "debug": "node --inspect node_modules/serverless/bin/serverless.js offline -s dev"
+    "debug": "node --inspect node_modules/serverless/bin/serverless.js offline -s dev",
+    "pre:build": "npx prisma db pull --schema=prisma/template.prisma && npx prisma generate --schema=prisma/template.prisma"
   },
   "dependencies": {
     "@nestjs/cache-manager": "^2.1.1",

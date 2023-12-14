@@ -5,13 +5,11 @@ import {
   CreateAttendeeByTokenDto,
   SwitchAttendeeRoleDto,
 } from '../resources/dto';
-import { Course, UserCourseRole } from 'utils/prisma/client';
 import { ICryptoJSService } from 'utils/hash/cryptojs';
-import { InvitationState } from 'utils/prisma/client';
-import { PrismaClient } from 'utils/prisma/client';
 import { UserResponse } from 'guards';
 import { CourseResponse } from '../resources/response';
 import { IUserService } from './user.service';
+import { InvitationState, PrismaClient, UserCourseRole } from '@prisma/client';
 
 export const IAttendeeService = 'IAttendeeService';
 

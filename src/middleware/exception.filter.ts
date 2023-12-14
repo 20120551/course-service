@@ -4,9 +4,9 @@ import {
   ArgumentsHost,
   HttpException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { AxiosError } from 'axios';
 import { Response } from 'express';
-import { Prisma } from 'utils/prisma/client';
 
 @Catch(Error)
 export class HttpExceptionFilter implements ExceptionFilter {

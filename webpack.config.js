@@ -35,7 +35,11 @@ module.exports = {
           transpileOnly: true,
           experimentalWatchApi: true,
         },
-      }
+      },
+      {
+        test: /\.html$/i,
+        loader: "html-loader",
+      },
     ]
   },
   output: {
@@ -54,6 +58,7 @@ module.exports = {
       modules: path.resolve(__dirname, "src/modules"),
       utils: path.resolve(__dirname, "src/utils"),
       interceptors: path.resolve(__dirname, "src/interceptors"),
+      templates: path.resolve(__dirname, "src/templates"),
     },
   },
   plugins: [

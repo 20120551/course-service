@@ -27,8 +27,8 @@ import {
 } from '../resources/dto';
 import { User } from 'utils/decorator/parameters';
 import { AuthenticatedGuard, UseCoursePolicies, UserResponse } from 'guards';
-import { UserCourseRole } from 'utils/prisma/client';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UserCourseRole } from '@prisma/client';
 
 // admin //
 // courses
