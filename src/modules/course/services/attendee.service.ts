@@ -22,7 +22,7 @@ export interface IAttendeeService {
     switchAttendeeRoleDto: SwitchAttendeeRoleDto,
   ): Promise<void>;
 
-  leaveCourse(courseId: string, user: UserResponse): Promise<void>;
+  leaveCourse(courseId: string, userId: string): Promise<void>;
 
   addAttendeeToCourseByCode(
     user: UserResponse,
@@ -256,18 +256,18 @@ export class AttendeeService implements IAttendeeService {
     return res;
   }
 
-  async leaveCourse(courseId: string, user: UserResponse): Promise<void> {
+  async leaveCourse(courseId: string, userId: string): Promise<void> {
     const attendee = await this._prismaService.userCourse.findUnique({
       where: {
         userId_courseId: {
-          userId: user.userId,
+          userId: userId,
           courseId,
         },
       },
     });
 
     if (!attendee) {
-      throw new BadRequestException(`not found user ${user.name} in course`);
+      throw new BadRequestException(`not found user ${userId} in course`);
     }
 
     if (attendee.role === UserCourseRole.HOST) {
@@ -280,7 +280,7 @@ export class AttendeeService implements IAttendeeService {
       await this._prismaService.userCourse.delete({
         where: {
           userId_courseId: {
-            userId: user.userId,
+            userId: userId,
             courseId,
           },
         },

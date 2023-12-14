@@ -121,6 +121,16 @@ export class CourseController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id/leave')
   leaveCourse(@Param('id') courseId: string, @User() user: UserResponse) {
-    return this._attendeeService.leaveCourse(courseId, user);
+    return this._attendeeService.leaveCourse(courseId, user.userId);
+  }
+
+  @UseCoursePolicies({ roles: [UserCourseRole.HOST] })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id/ban/:attendeeId')
+  banOutOfCourse(
+    @Param('id') courseId: string,
+    @Param('attendeeId') attendeeId,
+  ) {
+    return this._attendeeService.leaveCourse(courseId, attendeeId);
   }
 }
