@@ -4,6 +4,7 @@ import {
   UpsertCourseDto,
   GetCourseFilterDto,
   UploadFileDto,
+  CreateCourseDto,
 } from '../resources/dto';
 import { IFirebaseStorageService } from 'utils/firebase';
 import { UserResponse } from 'guards';
@@ -26,7 +27,7 @@ export interface ICourseService {
   getCourse(courseId: string, user: UserResponse): Promise<CourseResponse>;
 
   createCourse(
-    course: UpsertCourseDto,
+    course: CreateCourseDto,
     user: UserResponse,
   ): Promise<CourseResponse>;
   updateCourse(
@@ -87,14 +88,14 @@ export class CourseService implements ICourseService {
       result = await this._prismaService.course.findMany({
         ...courseFilter,
         where: {
-          attendees: {
+          userCourses: {
             some: {
               userId: user.userId,
             },
           },
         },
         include: {
-          attendees: {
+          userCourses: {
             where: {
               OR: [
                 {
@@ -120,9 +121,9 @@ export class CourseService implements ICourseService {
 
     if (!isEmpty(result)) {
       result = result.map((course) => {
-        const { attendees, ...payload } = course;
+        const { userCourses, ...payload } = course;
         let [host, attendee] = partition(
-          attendees,
+          userCourses,
           (attendee) => attendee.role === UserCourseRole.HOST,
         );
 
@@ -155,14 +156,14 @@ export class CourseService implements ICourseService {
       result = await this._prismaService.course.findUnique({
         where: {
           id: courseId,
-          attendees: {
+          userCourses: {
             some: {
               userId: user.userId,
             },
           },
         },
         include: {
-          attendees: {
+          userCourses: {
             include: {
               user: true,
             },
@@ -176,7 +177,7 @@ export class CourseService implements ICourseService {
           id: courseId,
         },
         include: {
-          attendees: {
+          userCourses: {
             include: {
               user: true,
             },
@@ -190,9 +191,9 @@ export class CourseService implements ICourseService {
       throw new BadRequestException('not found course');
     }
 
-    const { attendees, invitations, ...payload } = result;
+    const { userCourses, invitations, ...payload } = result;
     const [host, _attendees] = partition(
-      attendees,
+      userCourses,
       (attendee) => attendee.role === UserCourseRole.HOST,
     );
 
@@ -218,9 +219,10 @@ export class CourseService implements ICourseService {
   }
 
   async createCourse(
-    course: UpsertCourseDto,
+    course: CreateCourseDto,
     user: UserResponse,
   ): Promise<CourseResponse> {
+    console.log(course);
     let result = null;
     let attempt = 0;
     do {
@@ -241,10 +243,8 @@ export class CourseService implements ICourseService {
         await this._userService.createUser(user);
         const result = await context.course.create({
           data: {
-            code: course.code,
-            name: course.name,
-            desc: course.desc,
-            attendees: {
+            ...course,
+            userCourses: {
               create: {
                 userId: user.userId,
                 role: UserCourseRole.HOST,
@@ -252,7 +252,7 @@ export class CourseService implements ICourseService {
             },
           },
           include: {
-            attendees: true,
+            userCourses: true,
           },
         });
 
@@ -266,8 +266,8 @@ export class CourseService implements ICourseService {
       );
     }
 
-    const { attendees, ...payload } = result;
-    const { user: hostUser, ...hostPayload } = attendees[0];
+    const { userCourses, ...payload } = result;
+    const { user: hostUser, ...hostPayload } = userCourses[0];
 
     return {
       ...payload,

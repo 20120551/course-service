@@ -20,7 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "dev": "sls offline -s prod --useInProcess --noTimeout --reloadHandler",
     "debug": "node --inspect node_modules/serverless/bin/serverless.js offline -s dev",
-    "pre:build": "npx prisma-case-format --file prisma/template.prisma && npx prisma db pull --schema=prisma/template.prisma && npx prisma generate --schema=prisma/template.prisma",
+    "pre:build": "npx prisma db pull --schema=prisma/template.prisma && npx prisma-case-format -p --file prisma/template.prisma && npx prisma generate --schema=prisma/template.prisma",
     "pre:start": "npx prisma db pull && npx prisma generate"
   },
   "dependencies": {

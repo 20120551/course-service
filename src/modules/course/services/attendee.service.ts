@@ -121,7 +121,7 @@ export class AttendeeService implements IAttendeeService {
         code: createAttendeeByCodeDto.code,
       },
       include: {
-        attendees: {
+        userCourses: {
           where: {
             role: UserCourseRole.HOST,
           },
@@ -156,7 +156,7 @@ export class AttendeeService implements IAttendeeService {
           id: course.id,
         },
         data: {
-          attendees: {
+          userCourses: {
             create: {
               userId: user.userId,
               role: UserCourseRole.STUDENT,
@@ -164,7 +164,7 @@ export class AttendeeService implements IAttendeeService {
           },
         },
         include: {
-          attendees: {
+          userCourses: {
             where: {
               role: UserCourseRole.HOST,
             },
@@ -212,7 +212,7 @@ export class AttendeeService implements IAttendeeService {
           id: invitation.courseId,
         },
         data: {
-          attendees: {
+          userCourses: {
             create: {
               userId: user.userId,
               role: invitation.role,
@@ -231,7 +231,7 @@ export class AttendeeService implements IAttendeeService {
           },
         },
         include: {
-          attendees: {
+          userCourses: {
             where: {
               role: UserCourseRole.HOST,
             },
@@ -287,13 +287,13 @@ export class AttendeeService implements IAttendeeService {
   }
 
   private _getCourseResponse(course: any, user: UserResponse) {
-    const { attendees, ...payload } = course;
+    const { userCourses, ...payload } = course;
 
     return {
       ...payload,
       host: {
-        ...attendees[0],
-        ...attendees[0].user,
+        ...userCourses[0],
+        ...userCourses[0].user,
       },
       profile: {
         ...user,

@@ -90,7 +90,7 @@ export class InvitationService implements IInvitationService {
         id: courseId,
       },
       include: {
-        attendees: {
+        userCourses: {
           select: {
             user: {
               select: {
@@ -111,7 +111,7 @@ export class InvitationService implements IInvitationService {
     const filteredInvitations = differenceBy(
       createInvitationsDto,
       [
-        course.attendees.map((attendee) => {
+        course.userCourses.map((attendee) => {
           const { user, ...payload } = attendee;
           return {
             ...user,

@@ -21,6 +21,7 @@ import {
 } from '@nestjs/common';
 import { IAttendeeService, ICourseService } from '../services';
 import {
+  CreateCourseDto,
   GetCourseFilterDto,
   SwitchAttendeeRoleDto,
   UpsertCourseDto,
@@ -63,10 +64,10 @@ export class CourseController {
   @HttpCode(HttpStatus.CREATED)
   @Post()
   createCourse(
-    @Body() upsertCourseDto: UpsertCourseDto,
+    @Body() createCourseDto: CreateCourseDto,
     @User() user: UserResponse,
   ) {
-    return this._courseService.createCourse(upsertCourseDto, user);
+    return this._courseService.createCourse(createCourseDto, user);
   }
 
   @UseCoursePolicies({ roles: [UserCourseRole.HOST, UserCourseRole.TEACHER] })

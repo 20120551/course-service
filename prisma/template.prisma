@@ -9,22 +9,22 @@ datasource db {
 }
 
 model User {
-  id         String       @id
-  name       String
-  email      String?
-  picture    String
-  userCourse UserCourse[]
+  id          String       @id
+  name        String
+  email       String?
+  picture     String
+  userCourses UserCourse[]
 }
 
 model Course {
-  id         String       @id
-  name       String
-  desc       String?
-  code       String
-  createdAt  DateTime     @default(now()) @map("created_at")
-  background String?
-  invitation Invitation[]
-  userCourse UserCourse[]
+  id          String       @id
+  name        String
+  desc        String?
+  code        String
+  createdAt   DateTime     @default(now()) @map("created_at")
+  background  String?
+  invitations Invitation[]
+  userCourses UserCourse[]
 
   @@map("course")
 }

@@ -9,7 +9,6 @@ type DefaultValueOptions = {
 };
 
 export function defaultValue<T>(value: T, options?: DefaultValueOptions) {
-  console.log(typeof value);
   return function (object: Object, propertyName: string) {
     registerDecorator({
       name: 'defaultValue',
