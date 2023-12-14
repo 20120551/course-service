@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "dev": "sls offline -s prod --useInProcess --noTimeout --reloadHandler",
     "debug": "node --inspect node_modules/serverless/bin/serverless.js offline -s dev",
-    "pre:build": "npx prisma db pull --schema=prisma/template.prisma && npx prisma generate --schema=prisma/template.prisma"
+    "pre:build": "npx prisma-case-format --file prisma/template.prisma && npx prisma db pull --schema=prisma/template.prisma && npx prisma generate --schema=prisma/template.prisma",
+    "pre:start": "npx prisma db pull && npx prisma generate"
   },
   "dependencies": {
     "@nestjs/cache-manager": "^2.1.1",
@@ -71,6 +72,7 @@
     "jest": "^29.5.0",
     "prettier": "^3.0.0",
     "prisma": "^5.6.0",
+    "prisma-case-format": "^2.0.2",
     "run-script-webpack-plugin": "^0.2.0",
     "serverless-dotenv-plugin": "^6.0.0",
     "serverless-offline": "^13.3.0",

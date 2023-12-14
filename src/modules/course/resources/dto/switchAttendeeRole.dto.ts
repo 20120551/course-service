@@ -1,5 +1,5 @@
 import { IsString } from 'class-validator';
-import { UserCourseRole } from 'utils/prisma/client';
+import { UserCourseRole } from '@prisma/client';
 
 export class SwitchAttendeeRoleDto {
   @IsString()
