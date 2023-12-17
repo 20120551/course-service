@@ -1,6 +1,7 @@
 const path = require("path");
 const slsw = require("serverless-webpack");
 const webpack = require("webpack");
+const CopyPlugin = require("copy-webpack-plugin");
 
 const lazyImports = [
   '@nestjs/microservices',
@@ -73,6 +74,11 @@ module.exports = {
         }
         return false;
       },
+    }),
+    new CopyPlugin({
+      patterns: [
+        { from: "node_modules/.prisma/client/*.node", to: "src/" },
+      ],
     }),
   ]
 }
