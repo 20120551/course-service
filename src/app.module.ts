@@ -10,12 +10,14 @@ import {
   sendgrid,
 } from 'configurations/env.config';
 import { CourseModule } from 'modules/course/course.module';
+import { HealthCheckModule } from 'modules/healthCheck/health.check.module';
 import { RedisClientOptions } from 'redis';
 import { Auth0Module, Auth0ModuleOptions } from 'utils/auth0';
 import { PrismaModule } from 'utils/prisma';
 
 @Module({
   imports: [
+    HealthCheckModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [auth0, sendgrid, cryptojs, firebase, redis],
