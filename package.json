@@ -21,7 +21,7 @@
     "dev": "sls offline -s prod --useInProcess --noTimeout --reloadHandler",
     "debug": "node --inspect node_modules/serverless/bin/serverless.js offline -s dev",
     "pre:build": "npx prisma db pull --schema=prisma/template.prisma && npx prisma-case-format -p --file prisma/template.prisma && npx prisma generate --schema=prisma/template.prisma",
-    "pre:start": "npx prisma db pull && npx prisma generate"
+    "pre:start": "npx prisma db pull && npx prisma-case-format -p && npx prisma generate"
   },
   "dependencies": {
     "@nestjs/cache-manager": "^2.1.1",

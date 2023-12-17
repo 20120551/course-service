@@ -1,4 +1,4 @@
-service: graduate-course-service
+service: graduate-auth-service
 
 provider:
   name: aws
@@ -6,6 +6,7 @@ provider:
   runtime: nodejs18.x
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'ap-southeast-1'}
+  versionFunctions: false
 
 package: 
   individually: true
