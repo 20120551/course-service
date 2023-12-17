@@ -77,7 +77,7 @@ module.exports = {
     }),
     new CopyPlugin({
       patterns: [
-        { from: "node_modules/.prisma/client/*.node", to: "src/" },
+        { from: "node_modules/.prisma/client/*.node", to: "." },
       ],
     }),
   ]
