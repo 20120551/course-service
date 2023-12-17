@@ -1,4 +1,4 @@
-service: graduate-auth-service
+service: graduate-course-service
 
 provider:
   name: aws
