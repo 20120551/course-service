@@ -154,7 +154,7 @@ export class InvitationService implements IInvitationService {
 
       await this._sendgirdService.send({
         to: invitation.email,
-        subject: `Invitation to course by ${user.name}`,
+        subject: `Invitation to course by ${user.name} with role ${invitation.role}`,
         from: '20120551@student.hcmus.edu.vn', // Fill it with your validated email on SendGrid account
         text: 'Hello',
         html: formatHtml,

@@ -1,12 +1,11 @@
-import { IsOptional } from 'class-validator';
-import { parseInt } from 'utils/decorator/parameters';
+import { defaultValue, parseInt } from 'utils/decorator/parameters';
 
 class FilterDto {
-  @IsOptional()
+  @defaultValue(10)
   @parseInt()
   take?: number;
 
-  @IsOptional()
+  @defaultValue(0)
   @parseInt()
   skip?: number;
 }
