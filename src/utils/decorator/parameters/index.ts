@@ -59,7 +59,7 @@ export const parseInt = () => {
       propertyName: propertyName,
       validator: {
         validate(value: any, args: ValidationArguments) {
-          if (value !== undefined || value !== null) {
+          if (value !== undefined && value !== null) {
             if (typeof value !== 'number' && typeof value === 'string') {
               args.object[args.property] = +value;
               return true;
