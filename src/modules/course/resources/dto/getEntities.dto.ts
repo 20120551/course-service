@@ -1,7 +1,9 @@
 import { defaultValue, parseInt } from 'utils/decorator/parameters';
 
 class FilterDto {
-  @defaultValue(10)
+  @defaultValue(10, {
+    filter: (obj) => obj.take === 0,
+  })
   @parseInt()
   take?: number;
 
