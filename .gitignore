@@ -13,7 +13,7 @@ lerna-debug.log*
 
 # prisma
 /prisma/migrations
-/prisma/schema.prisma
+# /prisma/schema.prisma
 
 # OS
 .DS_Store
