@@ -96,10 +96,10 @@ export class CourseService implements ICourseService {
 
     const students = [];
     worksheet.eachRow((row) => {
-      const studentId = row.getCell(1).value;
-      const fullname = row.getCell(2).value;
+      const studentId = row.getCell(1).value.toString();
+      const fullname = row.getCell(2).value.toString();
 
-      if (studentId.toString().match(/([A-Za-z_\\-\\.])+/i)) {
+      if (studentId.match(/([A-Za-z_\\-\\.])+/i)) {
         return;
       }
 
