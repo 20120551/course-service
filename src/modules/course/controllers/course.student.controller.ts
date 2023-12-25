@@ -9,6 +9,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Get,
   Inject,
   MaxFileSizeValidator,
   Param,
@@ -33,6 +34,16 @@ export class CourseStudentController {
     @Inject(IAttendeeService)
     private readonly _attendeeService: IAttendeeService,
   ) {}
+
+  @HttpCode(HttpStatus.OK)
+  @Get('/student-card')
+  async getStudentCards(@User() user: UserResponse) {
+    const userResponse = await this._attendeeService.getStudentCards(
+      user.userId,
+    );
+
+    return userResponse;
+  }
 
   @HttpCode(HttpStatus.OK)
   @Post('/student-card')
@@ -64,7 +75,7 @@ export class CourseStudentController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Put('/student-card/:cardId')
+  @Post('/student-card/:cardId')
   async updateStudentCard(
     @Param('cardId') cardId: string,
     @User() user: UserResponse,
@@ -77,6 +88,20 @@ export class CourseStudentController {
     );
 
     return userResponse;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Put('/student-card/:cardId')
+  async addExistingStudentCard(
+    @Param('id') id: string,
+    @Param('cardId') cardId: string,
+    @User() user: UserResponse,
+  ) {
+    await this._attendeeService.addStudentCardUsingExistingCard(
+      user.userId,
+      id,
+      cardId,
+    );
   }
 
   @UseCoursePolicies({ roles: [UserCourseRole.HOST] })

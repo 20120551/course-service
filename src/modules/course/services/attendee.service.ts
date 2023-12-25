@@ -42,6 +42,12 @@ export interface IAttendeeService {
     createAttendeeByTokenDto: CreateAttendeeByTokenDto,
   ): Promise<CourseResponse>;
 
+  getStudentCards(userId: string): Promise<StudentCard[]>;
+  addStudentCardUsingExistingCard(
+    userId: string,
+    courseId: string,
+    studentId: string,
+  ): Promise<void>;
   uploadUserStudentCard(
     courseId: string,
     user: UserResponse,
@@ -51,7 +57,7 @@ export interface IAttendeeService {
   updateUserStudentCard(
     cardId: string,
     userId: string,
-    uploadUserStudentCardDto: UpdateStudentCardDto,
+    updateUserStudentCardDto: UpdateStudentCardDto,
   ): Promise<StudentCard>;
 }
 
@@ -70,22 +76,64 @@ export class AttendeeService implements IAttendeeService {
     private readonly _firebaseStorageService: IFirebaseStorageService,
   ) {}
 
+  async addStudentCardUsingExistingCard(
+    userId: string,
+    courseId: string,
+    studentId: string,
+  ): Promise<void> {
+    const card = await this._prismaService.studentCard.findUnique({
+      where: {
+        id: studentId,
+      },
+    });
+
+    if (!card) {
+      throw new BadRequestException('not found card id');
+    }
+
+    await this._prismaService.userCourse.update({
+      where: {
+        userId_courseId: {
+          userId,
+          courseId,
+        },
+      },
+      data: {
+        studentCardId: studentId,
+      },
+    });
+  }
+
+  async getStudentCards(userId: string): Promise<StudentCard[]> {
+    const { studentCards } = await this._prismaService.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        studentCards: true,
+      },
+    });
+
+    return studentCards;
+  }
+
   async updateUserStudentCard(
     cardId: string,
     userId: string,
-    uploadUserStudentCardDto: UpdateStudentCardDto,
+    updateStudentCardDto: UpdateStudentCardDto,
   ): Promise<StudentCard> {
     const userCard = await this._prismaService.studentCard.update({
       where: {
         id: cardId,
         userId,
       },
-      data: uploadUserStudentCardDto,
+      data: updateStudentCardDto,
     });
 
     return userCard;
   }
 
+  // check student id in course
   async uploadUserStudentCard(
     courseId: string,
     user: UserResponse,
@@ -123,6 +171,7 @@ export class AttendeeService implements IAttendeeService {
           },
         });
 
+        // check here
         await context.userCourse.update({
           where: {
             userId_courseId: {
