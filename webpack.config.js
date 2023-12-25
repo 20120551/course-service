@@ -41,6 +41,13 @@ module.exports = {
         test: /\.html$/i,
         loader: "html-loader",
       },
+      {
+        test: /\.xlsx$/i,
+        loader: "file-loader",
+        options: {
+          name: "[path][name].[ext]",
+        },
+      },
     ]
   },
   output: {

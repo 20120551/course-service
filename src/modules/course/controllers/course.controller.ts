@@ -11,7 +11,9 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   Post,
   Put,
   Query,
@@ -104,34 +106,38 @@ export class CourseController {
     return this._courseService.deleteCourse(id);
   }
 
-  @UseCoursePolicies({ roles: [UserCourseRole.HOST] })
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Put(':id/role')
-  switchAttendee(
-    @Param('id') courseId: string,
-    @Body() switchAttendeeDto: SwitchAttendeeRoleDto,
-    @User() user: UserResponse,
+  @UseCoursePolicies({ roles: [UserCourseRole.HOST, UserCourseRole.TEACHER] })
+  @HttpCode(HttpStatus.OK)
+  @Get(':id/import/template')
+  getStudentImportTemplate() {
+    return this._courseService.downloadStudentListTemplate();
+  }
+
+  @UseCoursePolicies({ roles: [UserCourseRole.HOST, UserCourseRole.TEACHER] })
+  @HttpCode(HttpStatus.OK)
+  @Post(':id/import/template')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadStudentList(
+    @UploadedFile(
+      new ParseFilePipe({
+        // max 10mb
+        validators: [new MaxFileSizeValidator({ maxSize: 1000 * 1000 * 10 })],
+      }),
+    )
+    file: Express.Multer.File,
+    @Param('id') id: string,
   ) {
-    return this._attendeeService.switchAttendeeRole(
-      courseId,
-      user,
-      switchAttendeeDto,
+    const payload = {
+      filename: file.originalname,
+      buffer: file.buffer,
+      mimeType: file.mimetype,
+    };
+
+    const userResponse = await this._courseService.updateStudentList(
+      id,
+      payload,
     );
-  }
 
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Delete(':id/leave')
-  leaveCourse(@Param('id') courseId: string, @User() user: UserResponse) {
-    return this._attendeeService.leaveCourse(courseId, user.userId);
-  }
-
-  @UseCoursePolicies({ roles: [UserCourseRole.HOST] })
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Delete(':id/ban/:attendeeId')
-  banOutOfCourse(
-    @Param('id') courseId: string,
-    @Param('attendeeId') attendeeId,
-  ) {
-    return this._attendeeService.leaveCourse(courseId, attendeeId);
+    return userResponse;
   }
 }

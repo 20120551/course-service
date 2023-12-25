@@ -11,3 +11,11 @@ export async function bootstrap() {
   const expressApp = app.getHttpAdapter().getInstance();
   return expressApp;
 }
+
+export async function bootstrapSQS() {
+  const app = await NestFactory.create(AppModule, { cors: true });
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.useGlobalFilters(new HttpExceptionFilter());
+  await app.init();
+  return app;
+}

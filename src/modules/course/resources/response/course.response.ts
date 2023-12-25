@@ -1,3 +1,16 @@
+import { JsonValue } from '@prisma/client/runtime/library';
+
+export interface StudentCourseTemplateResponse {
+  fileName: string;
+  ext: string;
+  buffer: Buffer;
+}
+
+export interface StudentCourseResponse {
+  studentId: string;
+  fullname: string;
+}
+
 export interface CourseResponse {
   id: string;
   name: string;
@@ -5,6 +18,7 @@ export interface CourseResponse {
   code: string;
   background?: string;
   createdAt: Date;
+  students?: StudentCourseResponse | JsonValue;
   attendees?: CourseHostResponse[];
   invitations?: CourseInvitationResponse[];
   host?: CourseHostResponse;

@@ -4,13 +4,25 @@ import {
   CreateAttendeeByCodeDto,
   CreateAttendeeByTokenDto,
   SwitchAttendeeRoleDto,
+  UpdateStudentCardDto,
 } from '../resources/dto';
 import { ICryptoJSService } from 'utils/hash/cryptojs';
 import { UserResponse } from 'guards';
 import { CourseResponse } from '../resources/response';
 import { IUserService } from './user.service';
-import { InvitationState, PrismaClient, UserCourseRole } from '@prisma/client';
-
+import {
+  InvitationState,
+  PrismaClient,
+  StudentCard,
+  UserCourseRole,
+} from '@prisma/client';
+import { AzureOcrStudentCardResponse, IAzureOcrService } from 'utils/ocr/azure';
+import { IFirebaseStorageService } from 'utils/firebase';
+import {
+  createCamelCaseFromObject,
+  createSnakeCaseFromObject,
+} from 'utils/request';
+import { v4 as uuidv4 } from 'uuid';
 export const IAttendeeService = 'IAttendeeService';
 
 export interface IAttendeeService {
@@ -31,6 +43,11 @@ export interface IAttendeeService {
     user: UserResponse,
     createAttendeeByTokenDto: CreateAttendeeByTokenDto,
   ): Promise<CourseResponse>;
+
+  updateUserStudentCard(
+    user: UserResponse,
+    updateUserStudentCard: UpdateStudentCardDto,
+  ): Promise<StudentCard>;
 }
 
 @Injectable()
@@ -42,7 +59,47 @@ export class AttendeeService implements IAttendeeService {
     private readonly _cryptoJSService: ICryptoJSService,
     @Inject(IUserService)
     private readonly _userService: IUserService,
+    @Inject(IAzureOcrService)
+    private readonly _azureOcrService: IAzureOcrService,
+    @Inject(IFirebaseStorageService)
+    private readonly _firebaseStorageService: IFirebaseStorageService,
   ) {}
+
+  async updateUserStudentCard(
+    user: UserResponse,
+    updateUserStudentCard: UpdateStudentCardDto,
+  ): Promise<StudentCard> {
+    const { buffer, filename } = updateUserStudentCard;
+    const pollData =
+      await this._azureOcrService.poll<AzureOcrStudentCardResponse>(buffer);
+
+    const studentCard = await this._prismaService.studentCard.findFirst({
+      where: {
+        userId: user.userId,
+        studentId: pollData.student_id,
+      },
+    });
+
+    if (studentCard) {
+      return createCamelCaseFromObject(studentCard);
+    }
+
+    const cardBucket = `cards/${uuidv4()}-${filename}`;
+    await this._firebaseStorageService.upload(buffer, cardBucket);
+    const url = await this._firebaseStorageService.get(cardBucket);
+
+    const studentCardCreated = await this._prismaService.studentCard.create({
+      data: {
+        userId: user.userId,
+        ...createCamelCaseFromObject<AzureOcrStudentCardResponse, StudentCard>(
+          pollData,
+        ),
+        studentCardImage: url,
+      },
+    });
+
+    return studentCardCreated;
+  }
 
   async switchAttendeeRole(
     courseId: string,

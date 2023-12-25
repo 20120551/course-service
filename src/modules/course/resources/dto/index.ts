@@ -4,3 +4,4 @@ export * from './upsertInvitation.dto';
 export * from './upsertAttendee.dto';
 export * from './uploadFile.dto';
 export * from './switchAttendeeRole.dto';
+export * from './studentCourse.dto';

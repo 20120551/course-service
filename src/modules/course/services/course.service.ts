@@ -1,4 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import ExcelJS from 'exceljs';
+import Stream from 'stream';
 import { PrismaService } from 'utils/prisma';
 import {
   UpsertCourseDto,
@@ -9,10 +11,15 @@ import {
 import { IFirebaseStorageService } from 'utils/firebase';
 import { UserResponse } from 'guards';
 import { isEmpty, partition } from 'lodash';
-import { CourseResponse } from '../resources/response';
+import {
+  CourseResponse,
+  StudentCourseResponse,
+  StudentCourseTemplateResponse,
+} from '../resources/response';
 import crypto from 'crypto';
 import { IUserService } from './user.service';
 import { InvitationState, PrismaClient, UserCourseRole } from '@prisma/client';
+import * as studentImportTemplate from 'templates/student-import.xlsx';
 
 export const ICourseService = 'ICourseService';
 
@@ -40,6 +47,12 @@ export interface ICourseService {
     courseId: string,
     uploadFileDto: UploadFileDto,
   ): Promise<CourseResponse>;
+
+  downloadStudentListTemplate(): Promise<StudentCourseTemplateResponse>;
+  updateStudentList(
+    courseId: string,
+    uploadFileDto: UploadFileDto,
+  ): Promise<StudentCourseResponse[]>;
 }
 
 @Injectable()
@@ -52,6 +65,62 @@ export class CourseService implements ICourseService {
     @Inject(IUserService)
     private readonly _userService: IUserService,
   ) {}
+
+  downloadStudentListTemplate(): Promise<StudentCourseTemplateResponse> {
+    return Promise.resolve({
+      buffer: Buffer.from(studentImportTemplate.default, 'utf8'),
+      ext: 'xlsx',
+      fileName: 'student-import.xlsx',
+    });
+  }
+
+  async updateStudentList(
+    courseId: string,
+    uploadFileDto: UploadFileDto,
+  ): Promise<StudentCourseResponse[]> {
+    const stream = Stream.Readable.from(uploadFileDto.buffer);
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.read(stream);
+
+    const worksheet = workbook.getWorksheet(1);
+    const headers = worksheet.getRow(1);
+    if (
+      headers.getCell(1).value !== 'StudentId' ||
+      headers.getCell(2).value !== 'FullName'
+    ) {
+      throw new BadRequestException(
+        `cannot handle this template, please download template of system to grant access`,
+      );
+    }
+
+    const students = [];
+    worksheet.eachRow((row) => {
+      const studentId = row.getCell(1).value;
+      const fullname = row.getCell(2).value;
+
+      if (studentId.toString().match(/([A-Za-z_\\-\\.])+/i)) {
+        return;
+      }
+
+      students.push({
+        studentId,
+        fullname,
+      });
+    });
+
+    console.log(students);
+    await this._prismaService.course.update({
+      where: {
+        id: courseId,
+      },
+      data: {
+        students: JSON.stringify(students),
+      },
+    });
+
+    return students;
+  }
 
   async uploadCourseBackground(
     courseId: string,

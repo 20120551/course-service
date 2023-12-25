@@ -1,7 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from 'utils/prisma';
 import { UserResponse } from 'guards';
+import { UpdateStudentCardDto } from '../resources/dto/studentCourse.dto';
+import { IFirebaseStorageService } from 'utils/firebase';
+import { AzureOcrStudentCardResponse, IAzureOcrService } from 'utils/ocr/azure';
+import { StudentCard } from '@prisma/client';
+import { createSnakeCaseFromObject } from 'utils/request';
 
+// add manual mapping student card or automation
 export const IUserService = 'IUserService';
 
 export interface IUserService {

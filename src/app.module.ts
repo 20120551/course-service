@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { redisStore } from 'cache-manager-redis-store';
 import {
   auth0,
+  azure,
   cryptojs,
   firebase,
   redis,
@@ -20,7 +21,7 @@ import { PrismaModule } from 'utils/prisma';
     HealthCheckModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [auth0, sendgrid, cryptojs, firebase, redis],
+      load: [auth0, sendgrid, cryptojs, firebase, redis, azure],
     }),
     Auth0Module.forRootAsync({
       global: true,

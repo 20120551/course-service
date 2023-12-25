@@ -29,3 +29,9 @@ export const sendgrid = registerAs('sendgrid', () => ({
 export const cryptojs = registerAs('cryptojs', () => ({
   secretKey: env.CRYPTOJS_SECREY_KEY,
 }));
+
+export const azure = registerAs('azure', () => ({
+  key: env.AZURE_KEY,
+  endpoint: env.AZURE_ENDPOINT,
+  ocrModel: env.AZURE_OCR_MODEL,
+}));

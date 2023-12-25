@@ -4,6 +4,7 @@ import {
   CourseAttendeeController,
   CourseController,
   CourseInvitationController,
+  CourseStudentController,
 } from './controllers';
 import {
   AttendeeService,
@@ -20,6 +21,7 @@ import { ConfigService } from '@nestjs/config';
 import { SendgridModuleOptions } from 'utils/sendgrid';
 import { CryptoJSModule, CryptoJSModuleOptions } from 'utils/hash/cryptojs';
 import { FirebaseModule, FirebaseModuleOptions } from 'utils/firebase';
+import { AzureModule, AzureModuleOptions } from 'utils/ocr/azure';
 
 @Module({
   imports: [
@@ -48,12 +50,21 @@ import { FirebaseModule, FirebaseModuleOptions } from 'utils/firebase';
       },
       inject: [ConfigService],
     }),
+
+    AzureModule.forRootAsync({
+      useFactory: (configService: ConfigService) => {
+        const azure = configService.get<AzureModuleOptions>('azure');
+        return azure;
+      },
+      inject: [ConfigService],
+    }),
   ],
   controllers: [
     CourseController,
     CourseAdminController,
     CourseInvitationController,
     CourseAttendeeController,
+    CourseStudentController,
   ],
   providers: [
     {
