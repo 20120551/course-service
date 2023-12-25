@@ -5,6 +5,7 @@ import {
   CreateAttendeeByTokenDto,
   SwitchAttendeeRoleDto,
   UpdateStudentCardDto,
+  UploadStudentCardDto,
 } from '../resources/dto';
 import { ICryptoJSService } from 'utils/hash/cryptojs';
 import { UserResponse } from 'guards';
@@ -18,10 +19,7 @@ import {
 } from '@prisma/client';
 import { AzureOcrStudentCardResponse, IAzureOcrService } from 'utils/ocr/azure';
 import { IFirebaseStorageService } from 'utils/firebase';
-import {
-  createCamelCaseFromObject,
-  createSnakeCaseFromObject,
-} from 'utils/request';
+import { createCamelCaseFromObject } from 'utils/request';
 import { v4 as uuidv4 } from 'uuid';
 export const IAttendeeService = 'IAttendeeService';
 
@@ -44,9 +42,16 @@ export interface IAttendeeService {
     createAttendeeByTokenDto: CreateAttendeeByTokenDto,
   ): Promise<CourseResponse>;
 
-  updateUserStudentCard(
+  uploadUserStudentCard(
+    courseId: string,
     user: UserResponse,
-    updateUserStudentCard: UpdateStudentCardDto,
+    uploadUserStudentCardDto: UploadStudentCardDto,
+  ): Promise<StudentCard>;
+
+  updateUserStudentCard(
+    cardId: string,
+    userId: string,
+    uploadUserStudentCardDto: UpdateStudentCardDto,
   ): Promise<StudentCard>;
 }
 
@@ -66,10 +71,27 @@ export class AttendeeService implements IAttendeeService {
   ) {}
 
   async updateUserStudentCard(
-    user: UserResponse,
-    updateUserStudentCard: UpdateStudentCardDto,
+    cardId: string,
+    userId: string,
+    uploadUserStudentCardDto: UpdateStudentCardDto,
   ): Promise<StudentCard> {
-    const { buffer, filename } = updateUserStudentCard;
+    const userCard = await this._prismaService.studentCard.update({
+      where: {
+        id: cardId,
+        userId,
+      },
+      data: uploadUserStudentCardDto,
+    });
+
+    return userCard;
+  }
+
+  async uploadUserStudentCard(
+    courseId: string,
+    user: UserResponse,
+    uploadUserStudentCardDto: UploadStudentCardDto,
+  ): Promise<StudentCard> {
+    const { buffer, filename } = uploadUserStudentCardDto;
     const pollData =
       await this._azureOcrService.poll<AzureOcrStudentCardResponse>(buffer);
 
@@ -88,15 +110,36 @@ export class AttendeeService implements IAttendeeService {
     await this._firebaseStorageService.upload(buffer, cardBucket);
     const url = await this._firebaseStorageService.get(cardBucket);
 
-    const studentCardCreated = await this._prismaService.studentCard.create({
-      data: {
-        userId: user.userId,
-        ...createCamelCaseFromObject<AzureOcrStudentCardResponse, StudentCard>(
-          pollData,
-        ),
-        studentCardImage: url,
+    const studentCardCreated = await this._prisma.$transaction(
+      async (context) => {
+        const studentCardCreated = await context.studentCard.create({
+          data: {
+            userId: user.userId,
+            ...createCamelCaseFromObject<
+              AzureOcrStudentCardResponse,
+              StudentCard
+            >(pollData),
+            studentCardImage: url,
+          },
+        });
+
+        await context.userCourse.update({
+          where: {
+            userId_courseId: {
+              userId: user.userId,
+              courseId,
+            },
+          },
+          data: {
+            studentCardId: studentCardCreated.id,
+          },
+        });
+        return studentCardCreated;
       },
-    });
+      {
+        timeout: 10000,
+      },
+    );
 
     return studentCardCreated;
   }

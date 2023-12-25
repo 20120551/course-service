@@ -20,7 +20,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { IAttendeeService } from '../services';
-import { SwitchAttendeeRoleDto } from '../resources/dto';
+import { SwitchAttendeeRoleDto, UpdateStudentCardDto } from '../resources/dto';
 import { User } from 'utils/decorator/parameters';
 import { AuthenticatedGuard, UseCoursePolicies, UserResponse } from 'guards';
 import { UserCourseRole } from '@prisma/client';
@@ -45,6 +45,7 @@ export class CourseStudentController {
       }),
     )
     file: Express.Multer.File,
+    @Param('id') courseId: string,
     @User() user: UserResponse,
   ) {
     const payload = {
@@ -53,9 +54,26 @@ export class CourseStudentController {
       mimeType: file.mimetype,
     };
 
-    const userResponse = await this._attendeeService.updateUserStudentCard(
+    const userResponse = await this._attendeeService.uploadUserStudentCard(
+      courseId,
       user,
       payload,
+    );
+
+    return userResponse;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Put('/student-card/:cardId')
+  async updateStudentCard(
+    @Param('cardId') cardId: string,
+    @User() user: UserResponse,
+    @Body() cardDto: UpdateStudentCardDto,
+  ) {
+    const userResponse = await this._attendeeService.updateUserStudentCard(
+      cardId,
+      user.userId,
+      cardDto,
     );
 
     return userResponse;
@@ -87,7 +105,7 @@ export class CourseStudentController {
   @Delete(':attendeeId')
   banOutOfCourse(
     @Param('id') courseId: string,
-    @Param('attendeeId') attendeeId,
+    @Param('attendeeId') attendeeId: string,
   ) {
     return this._attendeeService.leaveCourse(courseId, attendeeId);
   }

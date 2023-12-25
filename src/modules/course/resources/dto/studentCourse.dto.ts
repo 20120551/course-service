@@ -1,6 +1,15 @@
 import { IsString } from 'class-validator';
 
 export class UpdateStudentCardDto {
+  studentId: string;
+  name: string;
+  birthday: string;
+  cardExpiration: string;
+  degree: string;
+  universityName: string;
+}
+
+export class UploadStudentCardDto {
   buffer: Buffer;
   @IsString()
   filename: string;
