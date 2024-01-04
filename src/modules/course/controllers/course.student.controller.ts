@@ -91,17 +91,12 @@ export class CourseStudentController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Put('/student-card/:cardId')
-  async addExistingStudentCard(
-    @Param('id') id: string,
-    @Param('cardId') cardId: string,
-    @User() user: UserResponse,
-  ) {
-    await this._attendeeService.addStudentCardUsingExistingCard(
-      user.userId,
-      id,
-      cardId,
-    );
+  @Delete('/student-card/:cardId')
+  async deleteStudentCard(@Param('cardId') cardId: string) {
+    const userResponse =
+      await this._attendeeService.deleteUserStudentCard(cardId);
+
+    return userResponse;
   }
 
   @UseCoursePolicies({ roles: [UserCourseRole.HOST] })
