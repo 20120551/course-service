@@ -10,7 +10,6 @@ import {
 import { ICryptoJSService } from 'utils/hash/cryptojs';
 import { UserResponse } from 'guards';
 import { CourseResponse } from '../resources/response';
-import { IUserService } from './user.service';
 import {
   InvitationState,
   PrismaClient,
@@ -65,8 +64,6 @@ export class AttendeeService implements IAttendeeService {
     private readonly _prismaService: PrismaService,
     @Inject(ICryptoJSService)
     private readonly _cryptoJSService: ICryptoJSService,
-    @Inject(IUserService)
-    private readonly _userService: IUserService,
     @Inject(IAzureOcrService)
     private readonly _azureOcrService: IAzureOcrService,
     @Inject(IFirebaseStorageService)
@@ -261,40 +258,35 @@ export class AttendeeService implements IAttendeeService {
       return res;
     }
 
-    const result = await this._prisma.$transaction(async (context) => {
-      await this._userService.createUser(user);
-
-      const result = await context.course.update({
-        where: {
-          id: course.id,
-        },
-        data: {
-          userCourses: {
-            create: {
-              userId: user.userId,
-              role: UserCourseRole.STUDENT,
-            },
+    const result = await this._prismaService.course.update({
+      where: {
+        id: course.id,
+      },
+      data: {
+        userCourses: {
+          create: {
+            userId: user.userId,
+            role: UserCourseRole.STUDENT,
           },
         },
-        include: {
-          userCourses: {
-            where: {
-              role: UserCourseRole.HOST,
-            },
-            include: {
-              user: true,
-            },
+      },
+      include: {
+        userCourses: {
+          where: {
+            role: UserCourseRole.HOST,
+          },
+          include: {
+            user: true,
           },
         },
-      });
-
-      if (!result) {
-        throw new BadRequestException(
-          `not found course with code ${createAttendeeByCodeDto.code}`,
-        );
-      }
-      return result;
+      },
     });
+
+    if (!result) {
+      throw new BadRequestException(
+        `not found course with code ${createAttendeeByCodeDto.code}`,
+      );
+    }
 
     const res = this._getCourseResponse(result, user);
     return res;
@@ -318,50 +310,46 @@ export class AttendeeService implements IAttendeeService {
       throw new BadRequestException('not found invitation');
     }
 
-    const result = await this._prisma.$transaction(async (context) => {
-      await this._userService.createUser(user);
-      const result = await context.course.update({
-        where: {
-          id: invitation.courseId,
-        },
-        data: {
-          userCourses: {
-            create: {
-              userId: user.userId,
-              role: invitation.role,
-              invitationId: invitation.id,
-            },
-          },
-          invitations: {
-            update: {
-              where: {
-                id: invitation.id,
-              },
-              data: {
-                state: InvitationState.ACCEPTED,
-              },
-            },
+    const result = await this._prismaService.course.update({
+      where: {
+        id: invitation.courseId,
+      },
+      data: {
+        userCourses: {
+          create: {
+            userId: user.userId,
+            role: invitation.role,
+            invitationId: invitation.id,
           },
         },
-        include: {
-          userCourses: {
+        invitations: {
+          update: {
             where: {
-              role: UserCourseRole.HOST,
+              id: invitation.id,
             },
-            include: {
-              user: true,
+            data: {
+              state: InvitationState.ACCEPTED,
             },
           },
         },
-      });
-
-      if (!result) {
-        throw new BadRequestException(
-          `not found course with token ${createAttendeeByTokenDto.token}`,
-        );
-      }
-      return result;
+      },
+      include: {
+        userCourses: {
+          where: {
+            role: UserCourseRole.HOST,
+          },
+          include: {
+            user: true,
+          },
+        },
+      },
     });
+
+    if (!result) {
+      throw new BadRequestException(
+        `not found course with token ${createAttendeeByTokenDto.token}`,
+      );
+    }
 
     const res = this._getCourseResponse(result, user);
     return res;

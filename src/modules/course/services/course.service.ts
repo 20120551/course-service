@@ -17,7 +17,6 @@ import {
   StudentCourseTemplateResponse,
 } from '../resources/response';
 import crypto from 'crypto';
-import { IUserService } from './user.service';
 import { InvitationState, PrismaClient, UserCourseRole } from '@prisma/client';
 import * as studentImportTemplate from 'templates/student-import.xlsx';
 
@@ -62,8 +61,6 @@ export class CourseService implements ICourseService {
     private readonly _prismaService: PrismaService,
     @Inject(IFirebaseStorageService)
     private readonly _firebaseStorageService: IFirebaseStorageService,
-    @Inject(IUserService)
-    private readonly _userService: IUserService,
   ) {}
 
   downloadStudentListTemplate(): Promise<StudentCourseTemplateResponse> {
@@ -308,24 +305,19 @@ export class CourseService implements ICourseService {
         continue;
       }
 
-      result = await this._prisma.$transaction(async (context) => {
-        await this._userService.createUser(user);
-        const result = await context.course.create({
-          data: {
-            ...course,
-            userCourses: {
-              create: {
-                userId: user.userId,
-                role: UserCourseRole.HOST,
-              },
+      result = await this._prismaService.course.create({
+        data: {
+          ...course,
+          userCourses: {
+            create: {
+              userId: user.userId,
+              role: UserCourseRole.HOST,
             },
           },
-          include: {
-            userCourses: true,
-          },
-        });
-
-        return result;
+        },
+        include: {
+          userCourses: true,
+        },
       });
     } while (attempt < 10 && result === null);
 
