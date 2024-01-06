@@ -4,9 +4,8 @@ import {
   ExecutionContext,
   Inject,
 } from '@nestjs/common';
-import { Auth0UserInfo, IAuth0Service } from 'utils/auth0';
+import { IAuth0Service } from 'utils/auth0';
 import { UnauthorizedException } from 'utils/errors/domain.error';
-import { createCamelCaseFromObject } from 'utils/request';
 import { Request } from 'express';
 import { UserResponse } from 'guards';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';

@@ -44,8 +44,6 @@ export class CourseController {
   constructor(
     @Inject(ICourseService)
     private readonly _courseService: ICourseService,
-    @Inject(IAttendeeService)
-    private readonly _attendeeService: IAttendeeService,
   ) {}
 
   @HttpCode(HttpStatus.OK)
