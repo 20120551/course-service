@@ -5,6 +5,7 @@ export class UpdateStudentCardDto {
   name: string;
   birthday: string;
   cardExpiration: string;
+  department: string;
   degree: string;
   universityName: string;
 }
