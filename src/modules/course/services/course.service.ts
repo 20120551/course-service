@@ -1,5 +1,7 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import ExcelJS from 'exceljs';
+import fs from 'fs';
+import path from 'path';
 import Stream from 'stream';
 import { PrismaService } from 'utils/prisma';
 import {
@@ -63,12 +65,15 @@ export class CourseService implements ICourseService {
     private readonly _firebaseStorageService: IFirebaseStorageService,
   ) {}
 
-  downloadStudentListTemplate(): Promise<StudentCourseTemplateResponse> {
-    return Promise.resolve({
-      buffer: Buffer.from(studentImportTemplate.default, 'utf8'),
-      ext: 'xlsx',
+  async downloadStudentListTemplate(): Promise<StudentCourseTemplateResponse> {
+    const buffer = await fs.promises.readFile(
+      path.join(__dirname, studentImportTemplate.default),
+    );
+    return {
+      buffer,
       fileName: 'student-import.xlsx',
-    });
+      ext: 'xlsx',
+    };
   }
 
   async updateStudentList(
