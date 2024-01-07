@@ -120,7 +120,7 @@ export class CourseStudentController {
     return this._attendeeService.leaveCourse(courseId, user.userId);
   }
 
-  @UseCoursePolicies({ roles: [UserCourseRole.HOST] })
+  @UseCoursePolicies({ roles: [UserCourseRole.HOST, UserCourseRole.TEACHER] })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':attendeeId')
   banOutOfCourse(
