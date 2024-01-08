@@ -7,8 +7,10 @@ import {
   CourseStudentController,
 } from './controllers';
 import {
+  AdminService,
   AttendeeService,
   CourseService,
+  IAdminService,
   IAttendeeService,
   ICourseService,
   IInvitationService,
@@ -76,6 +78,10 @@ import { AzureModule, AzureModuleOptions } from 'utils/ocr/azure';
     {
       provide: IAttendeeService,
       useClass: AttendeeService,
+    },
+    {
+      provide: IAdminService,
+      useClass: AdminService,
     },
   ],
 })

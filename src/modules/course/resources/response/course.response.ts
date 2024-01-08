@@ -1,14 +1,21 @@
 import { JsonValue } from '@prisma/client/runtime/library';
+import { Stream } from 'stream';
 
 export interface StudentCourseTemplateResponse {
   fileName: string;
   ext: string;
-  buffer: Buffer;
+  buffer: Buffer | Stream;
 }
 
 export interface StudentCourseResponse {
   studentId: string;
   fullname: string;
+}
+
+export interface studentUserMappingResponse {
+  studentId: string;
+  email: string;
+  userId: string;
 }
 
 export interface CourseResponse {

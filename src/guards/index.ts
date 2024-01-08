@@ -26,3 +26,4 @@ export interface UserResponse {
 }
 export * from './authenticated.guard';
 export * from './course.role.guard';
+export * from './authorized.guard';
