@@ -9,6 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { UserCourseRole } from '@prisma/client';
 import { COURSE_ROLES_KEY } from 'configurations/role.config';
 import { Request } from 'express';
+import { UnauthorizedException } from 'utils/errors/domain.error';
 import { PrismaService } from 'utils/prisma';
 
 export const CourseRoles = (...roles: any[]) =>
@@ -23,7 +24,18 @@ export class CourseRoleGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<Request>();
-    const { courseId } = req.body || req.params || req.query;
+    const courseId =
+      req.body?.id ||
+      req.body?.courseId ||
+      req.params?.id ||
+      req.params?.courseId ||
+      req.query?.id ||
+      req.query?.courseId;
+
+    if (!courseId) {
+      throw new UnauthorizedException("you don't have permission");
+    }
+
     const { userId } = req.user;
     const { role } = await this._prismaService.userCourse.findFirst({
       where: {
