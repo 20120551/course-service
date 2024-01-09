@@ -21,6 +21,7 @@ import {
   AdminCourseFilterDto,
   AdminUpsertCourseDto,
   CreateCourseDto,
+  GetCourseFilterDto,
 } from '../resources/dto';
 import { AuthenticatedGuard, UseAuthorized, UserResponse } from 'guards';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -45,6 +46,12 @@ export class CourseAdminController {
     const userResponse = await this._attendeeService.getStudentCards(userId);
 
     return userResponse;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('all')
+  getAllCourses(@Query() query: GetCourseFilterDto) {
+    return this._courseService.getAllCourses(query);
   }
 
   @HttpCode(HttpStatus.OK)
