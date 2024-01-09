@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { AzureModuleOptions } from '.';
+import { AzureModuleOptions, AzureOcrStudentCardResponse } from '.';
 import {
   AzureKeyCredential,
   DocumentAnalysisClient,
@@ -7,7 +7,10 @@ import {
 
 export const IAzureOcrService = 'IAzureOcrService';
 export interface IAzureOcrService {
-  poll<T extends object>(buffer: Buffer, studentList?: string[]): Promise<T>;
+  poll<T extends object>(
+    buffer: Buffer,
+    studentList?: AzureOcrStudentCardResponse[],
+  ): Promise<T>;
 }
 
 @Injectable()
@@ -57,13 +60,14 @@ export class AzureMockOcrService implements IAzureOcrService {
 
   async poll<T extends object>(
     buffer: Buffer,
-    studentList?: string[],
+    studentList?: AzureOcrStudentCardResponse[],
   ): Promise<T> {
+    const random = Math.floor(Math.random() * studentList.length);
     const result = {
-      name: 'Trần Vĩnh Phúc',
+      name: studentList[random].name,
       birthday: '12-08-2023',
       degree: 'Đại học',
-      student_id: studentList[Math.floor(Math.random() * studentList.length)],
+      student_id: studentList[random].student_id,
       card_expiration: '2020-2024',
       department: 'Công nghệ thông tin',
       university_name: 'Trường đại học khoa học tự nhiên',

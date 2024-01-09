@@ -9,7 +9,7 @@ import {
 } from '../resources/dto';
 import { ICryptoJSService } from 'utils/hash/cryptojs';
 import { UserResponse } from 'guards';
-import { CourseResponse } from '../resources/response';
+import { CourseResponse, StudentCourseResponse } from '../resources/response';
 import {
   InvitationState,
   PrismaClient,
@@ -18,7 +18,10 @@ import {
 } from '@prisma/client';
 import { AzureOcrStudentCardResponse, IAzureOcrService } from 'utils/ocr/azure';
 import { IFirebaseStorageService } from 'utils/firebase';
-import { createCamelCaseFromObject } from 'utils/request';
+import {
+  createCamelCaseFromObject,
+  createSnakeCaseFromObject,
+} from 'utils/request';
 import { v4 as uuidv4 } from 'uuid';
 export const IAttendeeService = 'IAttendeeService';
 
@@ -124,8 +127,13 @@ export class AttendeeService implements IAttendeeService {
     });
 
     const studentLists = JSON.parse(students.toString()).map(
-      (student: StudentCard) => student.studentId,
+      (student: StudentCourseResponse) =>
+        createSnakeCaseFromObject({
+          studentId: student.studentId,
+          name: student.fullname,
+        }),
     );
+
     const pollData =
       await this._azureOcrService.poll<AzureOcrStudentCardResponse>(
         buffer,
