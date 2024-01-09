@@ -16,8 +16,9 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { IAdminService, ICourseService } from '../services';
+import { IAdminService, IAttendeeService, ICourseService } from '../services';
 import {
+  AdminCourseFilterDto,
   AdminUpsertCourseDto,
   CreateCourseDto,
   GetCourseFilterDto,
@@ -41,12 +42,24 @@ export class CourseAdminController {
     private readonly _courseService: ICourseService,
     @Inject(IAdminService)
     private readonly _adminService: IAdminService,
+    @Inject(IAttendeeService)
+    private readonly _attendeeService: IAttendeeService,
   ) {}
 
   @HttpCode(HttpStatus.OK)
+  @Get('/student/card')
+  async getStudentCard(@Query() { userId }: { userId: string }) {
+    const userResponse = await this._attendeeService.getStudentCards(userId);
+
+    return userResponse;
+  }
+
+  @HttpCode(HttpStatus.OK)
   @Get()
-  getCourses(@Query() courseFilterDto: GetCourseFilterDto) {
-    return this._courseService.getCourses(courseFilterDto);
+  getCourses(@Query() courseFilterDto: AdminCourseFilterDto) {
+    return this._courseService.getCourses(courseFilterDto, {
+      userId: courseFilterDto.userId,
+    } as UserResponse);
   }
 
   @HttpCode(HttpStatus.OK)
