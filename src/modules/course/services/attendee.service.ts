@@ -92,7 +92,7 @@ export class AttendeeService implements IAttendeeService {
     });
 
     if (!user) {
-      throw new BadRequestException('user not found');
+      return {} as StudentCard;
     }
     return user.studentCard;
   }
