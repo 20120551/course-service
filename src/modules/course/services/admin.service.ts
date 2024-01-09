@@ -10,6 +10,7 @@ import { Stream } from 'stream';
 import { differenceBy } from 'lodash';
 import { PrismaClient } from '@prisma/client';
 import BPromise from 'bluebird';
+import { streamToBuffer } from 'utils/file';
 
 export const IAdminService = 'IAdminService';
 
@@ -87,7 +88,7 @@ export class AdminService implements IAdminService {
     workbook.commit();
 
     return {
-      buffer: stream,
+      buffer: await streamToBuffer(stream),
       ext: 'xlsx',
       fileName: 'import-student.xlsx',
     };
