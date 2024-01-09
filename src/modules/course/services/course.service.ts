@@ -337,7 +337,6 @@ export class CourseService implements ICourseService {
     course: CreateCourseDto,
     user: UserResponse,
   ): Promise<CourseResponse> {
-    console.log(course);
     let result = null;
     let attempt = 0;
     do {
@@ -365,7 +364,11 @@ export class CourseService implements ICourseService {
           },
         },
         include: {
-          userCourses: true,
+          userCourses: {
+            select: {
+              user: true,
+            },
+          },
         },
       });
     } while (attempt < 10 && result === null);
