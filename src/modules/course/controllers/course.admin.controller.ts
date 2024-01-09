@@ -49,9 +49,9 @@ export class CourseAdminController {
 
   @HttpCode(HttpStatus.OK)
   @Get()
-  getCourses(@Query() courseFilterDto: AdminCourseFilterDto) {
-    return this._courseService.getCourses(courseFilterDto, {
-      userId: courseFilterDto.userId,
+  getCourses(@Query() { userId, ...payload }: AdminCourseFilterDto) {
+    return this._courseService.getCourses(payload, {
+      userId: userId,
     } as UserResponse);
   }
 
@@ -63,9 +63,9 @@ export class CourseAdminController {
 
   @HttpCode(HttpStatus.CREATED)
   @Post()
-  createCourse(@Body() upsertCourseDto: CreateCourseDto) {
-    return this._courseService.createCourse(upsertCourseDto, {
-      userId: upsertCourseDto.userId,
+  createCourse(@Body() { userId, ...payload }: CreateCourseDto) {
+    return this._courseService.createCourse(payload, {
+      userId: userId,
     } as UserResponse);
   }
 

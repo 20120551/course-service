@@ -157,7 +157,8 @@ export class CourseService implements ICourseService {
     let result = [];
     if (user) {
       result = await this._prismaService.course.findMany({
-        ...courseFilter,
+        skip: courseFilter.skip,
+        take: courseFilter.take,
         where: {
           userCourses: {
             some: {
