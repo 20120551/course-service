@@ -141,7 +141,7 @@ export class AdminService implements IAdminService {
         !create.some((create) => create.studentId === student.studentId),
     );
 
-    const result = await this._prisma.$transaction(
+    await this._prisma.$transaction(
       async (context) => {
         const result = await context.studentCard.createMany({
           data: create.map((data) => ({
