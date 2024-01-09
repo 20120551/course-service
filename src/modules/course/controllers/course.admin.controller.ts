@@ -21,15 +21,8 @@ import {
   AdminCourseFilterDto,
   AdminUpsertCourseDto,
   CreateCourseDto,
-  GetCourseFilterDto,
 } from '../resources/dto';
-import {
-  AuthenticatedGuard,
-  UseAuthorized,
-  UseCoursePolicies,
-  UserResponse,
-} from 'guards';
-import { UserCourseRole } from '@prisma/client';
+import { AuthenticatedGuard, UseAuthorized, UserResponse } from 'guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SupportedRole } from 'configurations/role.config';
 
@@ -91,9 +84,6 @@ export class CourseAdminController {
     return this._courseService.deleteCourse(id);
   }
 
-  @UseCoursePolicies({
-    roles: [UserCourseRole.HOST, UserCourseRole.TEACHER],
-  })
   @HttpCode(HttpStatus.OK)
   @Put('/template/import')
   @UseInterceptors(FileInterceptor('file'))
@@ -118,9 +108,6 @@ export class CourseAdminController {
     return userResponse;
   }
 
-  @UseCoursePolicies({
-    roles: [UserCourseRole.HOST, UserCourseRole.TEACHER],
-  })
   @HttpCode(HttpStatus.OK)
   @Get('/template/import')
   async downloadStudentMappingTemplate() {
