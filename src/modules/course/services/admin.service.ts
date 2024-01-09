@@ -142,7 +142,7 @@ export class AdminService implements IAdminService {
       },
     });
 
-    const create = differenceBy(userStudents, userStudentCards, 'studentId');
+    const create = differenceBy(userStudents, userStudentCards, 'userId');
     const update = userStudents.filter(
       (student) =>
         !create.some((create) => create.studentId === student.studentId),
