@@ -114,8 +114,23 @@ export class AttendeeService implements IAttendeeService {
     uploadUserStudentCardDto: UploadStudentCardDto,
   ): Promise<StudentCard> {
     const { buffer, filename } = uploadUserStudentCardDto;
+    const { students } = await this._prismaService.course.findUnique({
+      where: {
+        id: courseId,
+      },
+      select: {
+        students: true,
+      },
+    });
+
+    const studentLists = JSON.parse(students.toString()).map(
+      (student: StudentCard) => student.studentId,
+    );
     const pollData =
-      await this._azureOcrService.poll<AzureOcrStudentCardResponse>(buffer);
+      await this._azureOcrService.poll<AzureOcrStudentCardResponse>(
+        buffer,
+        studentLists,
+      );
 
     const studentCard = await this._prismaService.studentCard.findFirst({
       where: {

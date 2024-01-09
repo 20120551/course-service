@@ -7,7 +7,7 @@ import {
 
 export const IAzureOcrService = 'IAzureOcrService';
 export interface IAzureOcrService {
-  poll<T extends object>(buffer: Buffer): Promise<T>;
+  poll<T extends object>(buffer: Buffer, studentList?: string[]): Promise<T>;
 }
 
 @Injectable()
@@ -38,6 +38,36 @@ export class AzureOcrService implements IAzureOcrService {
         result[key] = extractedFields[key].content;
       }
     }
+    return result as T;
+  }
+}
+
+@Injectable()
+export class AzureMockOcrService implements IAzureOcrService {
+  private readonly _client: DocumentAnalysisClient;
+  constructor(
+    @Inject(AzureModuleOptions)
+    private _options: AzureModuleOptions,
+  ) {
+    this._client = new DocumentAnalysisClient(
+      _options.endpoint,
+      new AzureKeyCredential(_options.key),
+    );
+  }
+
+  async poll<T extends object>(
+    buffer: Buffer,
+    studentList?: string[],
+  ): Promise<T> {
+    const result = {
+      name: 'Trần Vĩnh Phúc',
+      birthday: '12-08-2023',
+      degree: 'Đại học',
+      student_id: studentList[Math.floor(Math.random() * studentList.length)],
+      card_expiration: '2020-2024',
+      department: 'Công nghệ thông tin',
+      university_name: 'Trường đại học khoa học tự nhiên',
+    };
     return result as T;
   }
 }

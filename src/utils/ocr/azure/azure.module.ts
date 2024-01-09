@@ -1,12 +1,16 @@
 import { DynamicModule, Module, Provider } from '@nestjs/common';
 import { AzureModuleAsyncOptions, AzureModuleOptions } from '.';
-import { AzureOcrService, IAzureOcrService } from './azure.ocr.service';
+import {
+  AzureMockOcrService,
+  AzureOcrService,
+  IAzureOcrService,
+} from './azure.ocr.service';
 
 @Module({
   providers: [
     {
       provide: IAzureOcrService,
-      useClass: AzureOcrService,
+      useClass: AzureMockOcrService,
     },
   ],
   exports: [IAzureOcrService],
