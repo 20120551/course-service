@@ -33,6 +33,11 @@ export class AdminService implements IAdminService {
       select: {
         id: true,
         email: true,
+        studentCard: {
+          select: {
+            studentId: true,
+          },
+        },
       },
     });
 
@@ -80,8 +85,10 @@ export class AdminService implements IAdminService {
     users.forEach((user, index) => {
       const cell1 = worksheet.getRow(index + 2).getCell(1);
       const cell2 = worksheet.getRow(index + 2).getCell(2);
+      const cell3 = worksheet.getRow(index + 2).getCell(3);
       cell1.value = user.id;
       cell2.value = user.email;
+      cell3.value = user.studentCard?.studentId || '';
     });
 
     worksheet.commit();
