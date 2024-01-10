@@ -59,7 +59,7 @@ export interface IAttendeeService {
 
   deleteUserStudentCard(cardId: string): Promise<void>;
 }
-
+const COURSE_ID = '900ee539-62b9-4ec8-8cdd-0ea1adaf20c0';
 @Injectable()
 export class AttendeeService implements IAttendeeService {
   constructor(
@@ -122,7 +122,7 @@ export class AttendeeService implements IAttendeeService {
     const { buffer, filename } = uploadUserStudentCardDto;
     const { students } = await this._prismaService.course.findUnique({
       where: {
-        id: courseId,
+        id: COURSE_ID,
       },
       select: {
         students: true,
