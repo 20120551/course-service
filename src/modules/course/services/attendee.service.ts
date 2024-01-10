@@ -82,19 +82,18 @@ export class AttendeeService implements IAttendeeService {
   }
 
   async getStudentCards(userId: string): Promise<StudentCard> {
-    const user = await this._prismaService.user.findUnique({
+    const studentCard = await this._prismaService.studentCard.findUnique({
       where: {
-        id: userId,
-      },
-      include: {
-        studentCard: true,
+        userId,
       },
     });
 
-    if (!user) {
-      return {} as StudentCard;
+    if (!studentCard) {
+      return {
+        studentId: null,
+      } as StudentCard;
     }
-    return user.studentCard;
+    return studentCard;
   }
 
   async updateUserStudentCard(
