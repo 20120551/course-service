@@ -25,7 +25,6 @@ import * as studentImportTemplate from 'templates/student-import.xlsx';
 export const ICourseService = 'ICourseService';
 
 export interface ICourseService {
-  getAllCourses(courseFilter: GetCourseFilterDto): Promise<CourseResponse[]>;
   getCourses(courseFilter: GetCourseFilterDto): Promise<CourseResponse[]>;
   getCourses(
     courseFilter: GetCourseFilterDto,
@@ -60,53 +59,10 @@ export interface ICourseService {
 @Injectable()
 export class CourseService implements ICourseService {
   constructor(
-    private readonly _prisma: PrismaClient,
     private readonly _prismaService: PrismaService,
     @Inject(IFirebaseStorageService)
     private readonly _firebaseStorageService: IFirebaseStorageService,
   ) {}
-
-  async getAllCourses(
-    courseFilter: GetCourseFilterDto,
-  ): Promise<CourseResponse[]> {
-    const courses = await this._prismaService.course.findMany({
-      take: courseFilter.take,
-      skip: courseFilter.skip,
-      include: {
-        userCourses: {
-          include: {
-            user: true,
-          },
-        },
-      },
-    });
-
-    if (!isEmpty(courses)) {
-      const result = courses.map((course) => {
-        const { userCourses, ...payload } = course;
-        let [host, attendee] = partition(
-          userCourses,
-          (attendee) => attendee.role === UserCourseRole.HOST,
-        );
-
-        if (isEmpty(attendee)) {
-          attendee = host;
-        }
-
-        const { user: attendeeUser, ...attendeePayload } = attendee[0];
-        const { user: hostUser, ...hostPayload } = host[0];
-
-        return {
-          ...payload,
-          host: { ...hostUser, ...hostPayload },
-          profile: { ...attendeeUser, ...attendeePayload },
-        };
-      });
-      return result;
-    }
-
-    return courses;
-  }
 
   async downloadStudentListTemplate(): Promise<StudentCourseTemplateResponse> {
     const buffer = await fs.promises.readFile(
@@ -154,7 +110,6 @@ export class CourseService implements ICourseService {
       });
     });
 
-    console.log(students);
     await this._prismaService.course.update({
       where: {
         id: courseId,
@@ -199,39 +154,9 @@ export class CourseService implements ICourseService {
   ): Promise<CourseResponse[]> {
     let result = [];
     if (user) {
-      result = await this._prismaService.course.findMany({
-        skip: courseFilter.skip,
-        take: courseFilter.take,
-        where: {
-          userCourses: {
-            some: {
-              userId: user.userId,
-            },
-          },
-        },
-        include: {
-          userCourses: {
-            where: {
-              OR: [
-                {
-                  role: UserCourseRole.HOST,
-                },
-                {
-                  userId: user.userId,
-                },
-              ],
-            },
-            include: {
-              user: true,
-            },
-          },
-        },
-      });
+      result = await this._getCourses(user.userId, courseFilter);
     } else {
-      result = await this._prismaService.course.findMany({
-        skip: courseFilter.skip,
-        take: courseFilter.take,
-      });
+      result = await this._getAllCourses(courseFilter);
     }
 
     if (!isEmpty(result)) {
@@ -412,5 +337,61 @@ export class CourseService implements ICourseService {
     });
 
     return result;
+  }
+
+  private async _getCourses(
+    userId: string,
+    courseFilter: GetCourseFilterDto,
+  ): Promise<CourseResponse[]> {
+    const result = await this._prismaService.course.findMany({
+      skip: courseFilter.skip,
+      take: courseFilter.take,
+      where: {
+        userCourses: {
+          some: {
+            userId: userId,
+          },
+        },
+      },
+      include: {
+        userCourses: {
+          where: {
+            OR: [
+              {
+                role: UserCourseRole.HOST,
+              },
+              {
+                userId: userId,
+              },
+            ],
+          },
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    return result;
+  }
+
+  private async _getAllCourses(
+    courseFilter: GetCourseFilterDto,
+  ): Promise<CourseResponse[]> {
+    const courses = await this._prismaService.course.findMany({
+      take: courseFilter.take,
+      skip: courseFilter.skip,
+      include: {
+        userCourses: {
+          where: {
+            role: UserCourseRole.HOST,
+          },
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+    return courses;
   }
 }
