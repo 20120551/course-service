@@ -25,6 +25,7 @@ import * as studentImportTemplate from 'templates/student-import.xlsx';
 export const ICourseService = 'ICourseService';
 
 export interface ICourseService {
+  getAllCourses(courseFilter: GetCourseFilterDto): Promise<CourseResponse[]>;
   getCourses(courseFilter: GetCourseFilterDto): Promise<CourseResponse[]>;
   getCourses(
     courseFilter: GetCourseFilterDto,
@@ -64,6 +65,48 @@ export class CourseService implements ICourseService {
     @Inject(IFirebaseStorageService)
     private readonly _firebaseStorageService: IFirebaseStorageService,
   ) {}
+
+  async getAllCourses(
+    courseFilter: GetCourseFilterDto,
+  ): Promise<CourseResponse[]> {
+    const courses = await this._prismaService.course.findMany({
+      take: courseFilter.take,
+      skip: courseFilter.skip,
+      include: {
+        userCourses: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!isEmpty(courses)) {
+      const result = courses.map((course) => {
+        const { userCourses, ...payload } = course;
+        let [host, attendee] = partition(
+          userCourses,
+          (attendee) => attendee.role === UserCourseRole.HOST,
+        );
+
+        if (isEmpty(attendee)) {
+          attendee = host;
+        }
+
+        const { user: attendeeUser, ...attendeePayload } = attendee[0];
+        const { user: hostUser, ...hostPayload } = host[0];
+
+        return {
+          ...payload,
+          host: { ...hostUser, ...hostPayload },
+          profile: { ...attendeeUser, ...attendeePayload },
+        };
+      });
+      return result;
+    }
+
+    return courses;
+  }
 
   async downloadStudentListTemplate(): Promise<StudentCourseTemplateResponse> {
     const buffer = await fs.promises.readFile(
@@ -157,7 +200,8 @@ export class CourseService implements ICourseService {
     let result = [];
     if (user) {
       result = await this._prismaService.course.findMany({
-        ...courseFilter,
+        skip: courseFilter.skip,
+        take: courseFilter.take,
         where: {
           userCourses: {
             some: {
@@ -293,7 +337,6 @@ export class CourseService implements ICourseService {
     course: CreateCourseDto,
     user: UserResponse,
   ): Promise<CourseResponse> {
-    console.log(course);
     let result = null;
     let attempt = 0;
     do {
@@ -321,7 +364,11 @@ export class CourseService implements ICourseService {
           },
         },
         include: {
-          userCourses: true,
+          userCourses: {
+            select: {
+              user: true,
+            },
+          },
         },
       });
     } while (attempt < 10 && result === null);

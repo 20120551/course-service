@@ -16,19 +16,14 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { IAdminService, ICourseService } from '../services';
+import { IAdminService, IAttendeeService, ICourseService } from '../services';
 import {
+  AdminCourseFilterDto,
   AdminUpsertCourseDto,
   CreateCourseDto,
   GetCourseFilterDto,
 } from '../resources/dto';
-import {
-  AuthenticatedGuard,
-  UseAuthorized,
-  UseCoursePolicies,
-  UserResponse,
-} from 'guards';
-import { UserCourseRole } from '@prisma/client';
+import { AuthenticatedGuard, UseAuthorized, UserResponse } from 'guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SupportedRole } from 'configurations/role.config';
 
@@ -41,12 +36,30 @@ export class CourseAdminController {
     private readonly _courseService: ICourseService,
     @Inject(IAdminService)
     private readonly _adminService: IAdminService,
+    @Inject(IAttendeeService)
+    private readonly _attendeeService: IAttendeeService,
   ) {}
 
   @HttpCode(HttpStatus.OK)
+  @Get('/student/card')
+  async getStudentCard(@Query() { userId }: { userId: string }) {
+    const userResponse = await this._attendeeService.getStudentCards(userId);
+
+    return userResponse;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('all')
+  getAllCourses(@Query() query: GetCourseFilterDto) {
+    return this._courseService.getAllCourses(query);
+  }
+
+  @HttpCode(HttpStatus.OK)
   @Get()
-  getCourses(@Query() courseFilterDto: GetCourseFilterDto) {
-    return this._courseService.getCourses(courseFilterDto);
+  getCourses(@Query() { userId, ...payload }: AdminCourseFilterDto) {
+    return this._courseService.getCourses(payload, {
+      userId: userId,
+    } as UserResponse);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -57,9 +70,9 @@ export class CourseAdminController {
 
   @HttpCode(HttpStatus.CREATED)
   @Post()
-  createCourse(@Body() upsertCourseDto: CreateCourseDto) {
-    return this._courseService.createCourse(upsertCourseDto, {
-      userId: upsertCourseDto.userId,
+  createCourse(@Body() { userId, ...payload }: CreateCourseDto) {
+    return this._courseService.createCourse(payload, {
+      userId: userId,
     } as UserResponse);
   }
 
@@ -78,9 +91,6 @@ export class CourseAdminController {
     return this._courseService.deleteCourse(id);
   }
 
-  @UseCoursePolicies({
-    roles: [UserCourseRole.HOST, UserCourseRole.TEACHER],
-  })
   @HttpCode(HttpStatus.OK)
   @Put('/template/import')
   @UseInterceptors(FileInterceptor('file'))
@@ -105,9 +115,6 @@ export class CourseAdminController {
     return userResponse;
   }
 
-  @UseCoursePolicies({
-    roles: [UserCourseRole.HOST, UserCourseRole.TEACHER],
-  })
   @HttpCode(HttpStatus.OK)
   @Get('/template/import')
   async downloadStudentMappingTemplate() {

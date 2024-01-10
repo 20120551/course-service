@@ -6,9 +6,9 @@ import { v4 as uuidv4 } from 'uuid';
 export class UpsertCourseDto {
   @IsOptional()
   userId?: string;
-  @IsString()
+  @IsOptional()
   name: string;
-  @IsString()
+  @IsOptional()
   desc: string;
 }
 

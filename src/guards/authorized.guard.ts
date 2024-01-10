@@ -36,17 +36,13 @@ export class AuthorizedGuard implements CanActivate {
 
     const { user } = request;
 
-    const isAcceptedRole = requiredRoles
-      .flat()
-      .some((_role) => user.userMetadata.role === _role);
-
-    if (!isAcceptedRole) {
-      throw new ForbiddenException(
-        'Do not have permission to access the resource',
-      );
+    if (
+      requiredRoles.flat().some((_role) => user.userMetadata.role === _role)
+    ) {
+      return true;
     }
 
-    return true;
+    return false;
   }
 }
 

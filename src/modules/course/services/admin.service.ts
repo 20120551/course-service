@@ -33,6 +33,11 @@ export class AdminService implements IAdminService {
       select: {
         id: true,
         email: true,
+        studentCard: {
+          select: {
+            studentId: true,
+          },
+        },
       },
     });
 
@@ -80,8 +85,10 @@ export class AdminService implements IAdminService {
     users.forEach((user, index) => {
       const cell1 = worksheet.getRow(index + 2).getCell(1);
       const cell2 = worksheet.getRow(index + 2).getCell(2);
+      const cell3 = worksheet.getRow(index + 2).getCell(3);
       cell1.value = user.id;
       cell2.value = user.email;
+      cell3.value = user.studentCard?.studentId || '';
     });
 
     worksheet.commit();
@@ -135,13 +142,13 @@ export class AdminService implements IAdminService {
       },
     });
 
-    const create = differenceBy(userStudents, userStudentCards, 'studentId');
+    const create = differenceBy(userStudents, userStudentCards, 'userId');
     const update = userStudents.filter(
       (student) =>
         !create.some((create) => create.studentId === student.studentId),
     );
 
-    const result = await this._prisma.$transaction(
+    await this._prisma.$transaction(
       async (context) => {
         const result = await context.studentCard.createMany({
           data: create.map((data) => ({

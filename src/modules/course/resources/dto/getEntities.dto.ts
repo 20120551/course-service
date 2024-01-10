@@ -13,4 +13,8 @@ class FilterDto {
 }
 
 export class GetCourseFilterDto extends FilterDto {}
+
+export class AdminCourseFilterDto extends FilterDto {
+  userId: string;
+}
 export class GetInvitationFilterDto extends FilterDto {}
