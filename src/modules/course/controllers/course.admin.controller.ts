@@ -51,7 +51,7 @@ export class CourseAdminController {
   @HttpCode(HttpStatus.OK)
   @Get('all')
   getAllCourses(@Query() query: GetCourseFilterDto) {
-    return this._courseService.getAllCourses(query);
+    return this._courseService.getCourses(query);
   }
 
   @HttpCode(HttpStatus.OK)
